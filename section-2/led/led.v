@@ -1,3 +1,5 @@
+`default_nettype none `timescale 1ns / 1ns
+
 module led (
     input clk,
     output reg led
