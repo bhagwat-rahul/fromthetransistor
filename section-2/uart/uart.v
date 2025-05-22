@@ -1,8 +1,15 @@
-module baud_gen (
+module baud_gen #(
+    parameter int BAUD_RATE = 115200,
+    int CLK_FREQ = 100000000,  // 100 MHz
+    int OVS_FACTOR = 16  // Oversampling Factor
+) (
     input  clk,
     reset,
     output tick_16x
 );
+  localparam int DIVISORFP_16 = (CLK_FREQ << 16) / (BAUD_RATE * OVS_FACTOR);  // float divisor
+  always @(posedge clk) begin
+  end
 endmodule
 
 module uart_tx (
