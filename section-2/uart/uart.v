@@ -11,18 +11,42 @@ module baud_gen #(
     output reg tick_16x
 );
   localparam int unsigned DIVISORFP_16 = (CLK_FREQ << 24) / (BAUD_RATE * OVS_FACTOR);
-  localparam int unsigned DIVISORINT = DIVISORFP_16[31:24];
   localparam int unsigned OVSWIDTH = $clog2(OVS_FACTOR);
-  reg [31:0] acc;
+
+  reg [32:0] acc;
   reg [OVSWIDTH-1:0] oversample_counter;
-  always @(posedge clk) begin
+  reg prev_tick_16x;
+
+  wire raw_tick = acc[32];
+  wire tick_pulse = raw_tick & ~prev_tick_16x;
+
+  initial begin
+    if ((OVS_FACTOR & (OVS_FACTOR - 1)) != 0) $error("OVS_FACTOR must be power of 2");
+  end
+
+  always @(posedge clk or posedge reset) begin
     if (reset) begin
-      acc <= 0;
-      oversample_counter <= 0;
+      acc <= 33'd0;
+      oversample_counter <= {OVSWIDTH{1'b0}};
       baud_tick <= 1'b0;
+      prev_tick_16x <= 1'b0;
       tick_16x <= 1'b0;
     end else begin
-      acc <= acc + 1;
+      acc <= acc + {1'b0, DIVISORFP_16};
+      prev_tick_16x <= raw_tick;
+      tick_16x <= tick_pulse;
+
+      if (tick_pulse) begin
+        if (oversample_counter == OVSWIDTH'(OVS_FACTOR - 1)) begin  // Padding to compute ==
+          oversample_counter <= {OVSWIDTH{1'b0}};
+          baud_tick <= 1'b1;
+        end else begin
+          oversample_counter <= oversample_counter + 1'b1;
+          baud_tick <= 1'b0;
+        end
+      end else begin
+        baud_tick <= 1'b0;
+      end
     end
   end
 endmodule
@@ -38,6 +62,11 @@ module uart_tx (
     tx_busy,
     tx_done
 );
+  always @(posedge clk) begin
+    if (reset) begin
+
+    end
+  end
 endmodule
 
 module uart_rx (
@@ -51,10 +80,20 @@ module uart_rx (
     parity_err,
     frame_err
 );
+  always @(posedge clk) begin
+    if (reset) begin
+
+    end
+  end
 endmodule
 
 module uart (
     input clk,
     reset
 );
+  always @(posedge clk) begin
+    if (reset) begin
+
+    end
+  end
 endmodule
