@@ -1,7 +1,7 @@
 # This is a 64 bit risc-v assembler
 def main():
-  print("Enter a risc-v assembly instruction\n")
   while 1:
+    print("Enter a risc-v assembly instruction\n")
     instruction = input()
     encode_instruction(instruction) # Add rs1 and rs2 and store result in rd
 
