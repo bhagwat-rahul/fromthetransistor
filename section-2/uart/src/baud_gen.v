@@ -10,6 +10,7 @@ module baud_gen #(
     output reg baud_tick,
     output reg tick_16x
 );
+
   localparam int unsigned DIVISORFP_16 = (CLK_FREQ << 24) / (BAUD_RATE * OVS_FACTOR);
   localparam int unsigned OVSWIDTH = $clog2(OVS_FACTOR);
 
