@@ -2,13 +2,13 @@
 
 module led (
     input clk,
-    output reg led
+    output reg led_1
 );
   // We want to blink an led here
   reg [31:0] count;
   always @(posedge clk) begin
     if (count == 99999999) begin  // Depends on the clock cycle:- 99999999 is 1 second on 100 MHz
-      led   <= ~led;
+      led_1 <= ~led_1;
       count <= 0;
     end else begin
       count <= count + 1;
