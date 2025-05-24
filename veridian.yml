@@ -1,0 +1,31 @@
+# veridian.yml
+source_dirs:
+  - section-1
+  - section-2
+  - section-3
+  - section-4
+  - section-5
+  - section-6
+  - section-7
+
+# (Optionally recurse the rest of the workspace too)
+auto_search_workdir: true
+
+verilator:
+  syntax:
+    enabled: true
+    path: "verilator"
+    args:
+      # the usual lint flags
+      - --lint-only
+      - --sv
+      - -Wall
+      # add an -I for each folder you use as a module search path
+      - -Isection-1
+      - -Isection-2/led
+      - -Isection-2/uart/src
+      - -Isection-3
+      - -Isection-4
+      - -Isection-5
+      - -Isection-6
+      - -Isection-7
