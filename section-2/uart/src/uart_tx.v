@@ -1,37 +1,46 @@
 `default_nettype none `timescale 1ns / 1ns
 
-module uart_tx (
-    input clk,
-    reset,
-    baud_tick,
-    logic tx_data[7:0],
-    send_request,
-    config_bits,
-    output logic tx_pin,
-    tx_busy,
-    tx_done
+module uart_tx #(
+    parameter int DATA_BITS = 8
+) (
+    input  logic                 clk,
+    input  logic                 reset,
+    input  logic                 baud_tick,
+    input  logic                 send_request,
+    input  logic [DATA_BITS-1:0] tx_data,
+    input  logic                 parity_enable,
+    output logic                 tx_pin,
+    output logic                 tx_busy,
+    output logic                 tx_done
 );
 
   typedef enum {
     IDLE,
     START,
     DATA,
-    EVEN_PARITY,  // Even number of 1s including parity bit
+    ODD_PARITY,
     STOP,
     DONE
   } fsm_e;
   fsm_e state;
 
-  reg [2:0] bit_index;
-  reg [7:0] shift;
+  localparam int unsigned INDEXWIDTH = $clog2(DATA_BITS);
+  logic [INDEXWIDTH-1:0] bit_index;
+  logic [ DATA_BITS-1:0] shift;
 
   always @(posedge clk or posedge reset) begin
     if (reset) begin
       tx_pin <= 1'b1;
-      shift  <= 8'b1111_1111;
+      shift <= {DATA_BITS{1'b1}};
+      state <= IDLE;
+      bit_index <= 0;
+      tx_busy <= 0;
+      tx_done <= 0;
+
     end else begin
       unique case (state)
         IDLE: begin
+          tx_done <= 0;
           tx_busy <= 1'b0;
           tx_pin  <= 1'b1;
           if (send_request == 1) begin
@@ -40,32 +49,41 @@ module uart_tx (
             state   <= START;
           end
         end
-        START, DATA, EVEN_PARITY, STOP, DONE: begin
+        START, DATA, ODD_PARITY, STOP, DONE: begin
           if (baud_tick) begin
             unique case (state)
               START: begin
                 tx_pin <= 1'b0;
-                state  <= DATA;
+                tx_busy <= 1;
+                bit_index <= 0;
+                state <= DATA;
               end
               DATA: begin
-                tx_pin <= shift[bit_index-1];
-                if (bit_index < 3'b111) begin
-                  bit_index <= bit_index + 1;
+                tx_busy <= 1;
+                tx_pin  <= shift[bit_index];
+                if (bit_index == INDEXWIDTH'(DATA_BITS - 1)) begin
+                  if (parity_enable) begin
+                    state <= ODD_PARITY;
+                  end else begin
+                    state <= STOP;
+                  end
                 end else begin
-                  state <= EVEN_PARITY;
-                  bit_index <= 3'b000;
+                  bit_index <= bit_index + 1;
                 end
               end
-              EVEN_PARITY: begin
-                tx_pin <= 1'b1;  // TODO: Complete even or odd parity
+              ODD_PARITY: begin
+                tx_pin <= ~^shift;  // To complete odd parity
                 state  <= STOP;
               end
               STOP: begin
-                tx_pin <= 1'b1;
-                state  <= DONE;
+                tx_busy <= 1;
+                tx_pin  <= 1'b1;
+                state   <= DONE;
               end
               DONE: begin
-                state <= IDLE;
+                tx_done <= 1;
+                tx_busy <= 0;
+                state   <= IDLE;
               end
             endcase
           end
