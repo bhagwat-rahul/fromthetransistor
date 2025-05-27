@@ -5,10 +5,10 @@ module baud_gen #(
     int unsigned CLK_FREQ = 100000000,  // 100 MHz
     int unsigned OVS_FACTOR = 16  // Oversampling Factor
 ) (
-    input clk,
-    input reset,
-    output reg baud_tick,
-    output reg tick_16x
+    input  logic clk,
+    input  logic reset,
+    output logic baud_tick,
+    output logic tick_16x
 );
 
   localparam int unsigned DIVISORFP_16 = (CLK_FREQ << 24) / (BAUD_RATE * OVS_FACTOR);

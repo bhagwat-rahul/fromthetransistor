@@ -1,8 +1,8 @@
 `default_nettype none `timescale 1ns / 1ns
 
 module uart (
-    input clk,
-    reset
+    input logic clk,
+    input logic reset
 );
 
   // wire baud_tick, tick_16x;
