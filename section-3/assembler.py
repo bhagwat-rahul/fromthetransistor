@@ -3,7 +3,7 @@ def main():
   while 1:
     print("Enter a risc-v assembly instruction\n")
     instruction = input()
-    encode_instruction(instruction) # Add rs1 and rs2 and store result in rd
+    encode_instruction(instruction)
 
 # R (register-register ALU instructions), I (ALU immediate instructions, load instructions), S (store instructions, comparison and branch instructions), B (branch instructions), U (jump instructions, jump and link instructions), and J (jump instructions)
 
