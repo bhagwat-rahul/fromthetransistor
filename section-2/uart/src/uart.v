@@ -35,7 +35,7 @@ module uart (
   //     .baud_tick,
   //     .tx_data,
   //     .send_request,
-  //     .config_bits,
+  //     .parity_enable,
   //     .tx_pin,
   //     .tx_busy,
   //     .tx_done
