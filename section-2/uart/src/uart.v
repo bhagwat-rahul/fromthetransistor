@@ -22,7 +22,7 @@ module uart (
   //     .reset,
   //     .tick_16x,
   //     .rx_pin,
-  //     .config_bits,
+  //     .parity_enable,
   //     .rx_data,
   //     .data_ready,
   //     .parity_err,

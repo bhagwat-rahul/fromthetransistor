@@ -22,7 +22,7 @@ module uart_tx #(
     STOP,
     DONE
   } fsm_e;
-  fsm_e state;
+  fsm_e tx_state;
 
   localparam int unsigned INDEXWIDTH = $clog2(DATA_BITS);
   logic [INDEXWIDTH-1:0] bit_index;
@@ -32,58 +32,58 @@ module uart_tx #(
     if (reset) begin
       tx_pin <= 1'b1;
       shift <= {DATA_BITS{1'b1}};
-      state <= IDLE;
+      tx_state <= IDLE;
       bit_index <= 0;
       tx_busy <= 0;
       tx_done <= 0;
 
     end else begin
-      unique case (state)
+      unique case (tx_state)
         IDLE: begin
           tx_done <= 0;
           tx_busy <= 1'b0;
           tx_pin  <= 1'b1;
           if (send_request == 1) begin
-            shift   <= tx_data;
+            shift <= tx_data;
             tx_busy <= 1'b1;
-            state   <= START;
+            tx_state <= START;
           end
         end
         START, DATA, ODD_PARITY, STOP, DONE: begin
           if (baud_tick) begin
-            unique case (state)
+            unique case (tx_state)
               START: begin
                 tx_pin <= 1'b0;
                 tx_busy <= 1;
                 bit_index <= 0;
-                state <= DATA;
+                tx_state <= DATA;
               end
               DATA: begin
                 tx_busy <= 1;
                 tx_pin  <= shift[bit_index];
                 if (bit_index == INDEXWIDTH'(DATA_BITS - 1)) begin
                   if (parity_enable) begin
-                    state <= ODD_PARITY;
+                    tx_state <= ODD_PARITY;
                   end else begin
-                    state <= STOP;
+                    tx_state <= STOP;
                   end
                 end else begin
                   bit_index <= bit_index + 1;
                 end
               end
               ODD_PARITY: begin
-                tx_pin <= ~^shift;  // To complete odd parity
-                state  <= STOP;
+                tx_pin   <= ~^shift;  // To complete odd parity
+                tx_state <= STOP;
               end
               STOP: begin
-                tx_busy <= 1;
-                tx_pin  <= 1'b1;
-                state   <= DONE;
+                tx_busy  <= 1;
+                tx_pin   <= 1'b1;
+                tx_state <= DONE;
               end
               DONE: begin
-                tx_done <= 1;
-                tx_busy <= 0;
-                state   <= IDLE;
+                tx_done  <= 1;
+                tx_busy  <= 0;
+                tx_state <= IDLE;
               end
             endcase
           end
