@@ -26,12 +26,12 @@ module uart_tx #(
 
   localparam int unsigned INDEXWIDTH = $clog2(DATA_BITS);
   logic [INDEXWIDTH-1:0] bit_index;
-  logic [ DATA_BITS-1:0] shift;
+  logic [ DATA_BITS-1:0] tx_shift;
 
   always @(posedge clk or posedge reset) begin
     if (reset) begin
       tx_pin <= 1'b1;
-      shift <= {DATA_BITS{1'b1}};
+      tx_shift <= {DATA_BITS{1'b1}};
       tx_state <= IDLE;
       bit_index <= 0;
       tx_busy <= 0;
@@ -44,8 +44,8 @@ module uart_tx #(
           tx_busy <= 1'b0;
           tx_pin  <= 1'b1;
           if (send_request == 1) begin
-            shift <= tx_data;
-            tx_busy <= 1'b1;
+            tx_shift <= tx_data;
+            tx_busy  <= 1'b1;
             tx_state <= START;
           end
         end
@@ -60,7 +60,7 @@ module uart_tx #(
               end
               DATA: begin
                 tx_busy <= 1;
-                tx_pin  <= shift[bit_index];
+                tx_pin  <= tx_shift[bit_index];
                 if (bit_index == INDEXWIDTH'(DATA_BITS - 1)) begin
                   if (parity_enable) begin
                     tx_state <= ODD_PARITY;
@@ -72,7 +72,7 @@ module uart_tx #(
                 end
               end
               ODD_PARITY: begin
-                tx_pin   <= ~^shift;  // To complete odd parity
+                tx_pin   <= ~^tx_shift;  // To complete odd parity
                 tx_state <= STOP;
               end
               STOP: begin
