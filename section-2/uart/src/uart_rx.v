@@ -34,6 +34,8 @@ module uart_rx #(
   logic [BITINDEXWIDTH-1:0] bit_index;
   logic prev_rx_pin;
 
+  logic midsample = (logic'(os_count == MIDSAMPLE));
+  logic lasttick = (logic'(os_count == LASTTICK));
 
   always @(posedge clk) begin
     if (reset) begin
@@ -63,7 +65,7 @@ module uart_rx #(
             os_count <= os_count + 1;
             unique case (rx_state)
               START: begin
-                if (os_count == MIDSAMPLE) begin
+                if (midsample) begin
                   if (rx_pin == 1'b0) begin
                     os_count  <= 0;
                     bit_index <= 0;
@@ -75,12 +77,12 @@ module uart_rx #(
               end
 
               DATA: begin
-                if (os_count == MIDSAMPLE) begin
+                if (midsample) begin
                   rx_shift[bit_index] <= rx_pin;
                 end
-                if (os_count == LASTTICK) begin
+                if (lasttick) begin
                   os_count <= 0;
-                  if (bit_index == DATA_BITS - 1) begin
+                  if (bit_index == BITINDEXWIDTH'(DATA_BITS - 1)) begin
                     rx_state <= (parity_enable ? ODD_PARITY : STOP);
                   end else begin
                     bit_index <= bit_index + 1;
@@ -89,20 +91,20 @@ module uart_rx #(
               end
 
               ODD_PARITY: begin
-                if (os_count == MIDSAMPLE) begin
+                if (midsample) begin
                   parity_err <= (rx_pin !== ~^rx_shift);
                 end
-                if (os_count == LASTTICK) begin
+                if (lasttick) begin
                   os_count <= 0;
                   rx_state <= STOP;
                 end
               end
 
               STOP: begin
-                if (os_count == MIDSAMPLE) begin
+                if (midsample) begin
                   frame_err <= ~rx_pin;
                 end
-                if (os_count == LASTTICK) begin
+                if (lasttick) begin
                   os_count <= 0;
                   rx_state <= DONE;
                 end
