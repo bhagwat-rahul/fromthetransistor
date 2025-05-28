@@ -11,8 +11,10 @@ R_instr = []
 I_instr = []
 S_instr = []
 B_instr = []
+SB_instr = []
 U_instr = []
 J_instr = []
+UJ_instr = []
 
 def encode_instruction(instruction: str):
   if instruction in (R_instr):
