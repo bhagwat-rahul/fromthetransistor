@@ -37,7 +37,7 @@ module uart_rx #(
   logic midsample = (os_count == OVSWIDTH'(MIDSAMPLE));
   logic lasttick = (os_count == OVSWIDTH'(LASTTICK));
 
-  always @(posedge clk) begin
+  always @(posedge clk or posedge reset) begin
     if (reset) begin
       rx_state    <= IDLE;
       frame_err   <= 0;
