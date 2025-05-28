@@ -46,6 +46,7 @@ module uart_rx #(
       data_ready  <= 0;
       prev_rx_pin <= 1;
       os_count    <= 0;
+      rx_shift    <= 0;
     end else begin
       prev_rx_pin <= rx_pin;
       unique case (rx_state)

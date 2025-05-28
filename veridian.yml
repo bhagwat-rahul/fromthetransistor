@@ -18,6 +18,7 @@ verilator:
     args:
       # the usual lint flags
       - --lint-only
+      - --timing
       - --sv
       - -Wall
       # add an -I for each folder you use as a module search path
