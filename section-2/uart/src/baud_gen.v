@@ -36,11 +36,14 @@ module baud_gen #(
       acc <= acc + {1'b0, DIVISORFP_16};
       prev_tick_16x <= raw_tick;
       tick_16x <= tick_pulse;
+      // TODO: We are currently emitting tick16x at every clkedge, something wrong w overflow count
+      $display("tick16 at : ", $time);
 
       if (tick_pulse) begin
         if (oversample_counter == OVSWIDTH'(OVS_FACTOR - 1)) begin  // Padding to compute ==
           oversample_counter <= {OVSWIDTH{1'b0}};
           baud_tick <= 1'b1;
+          $display("baud at : ", $time);
         end else begin
           oversample_counter <= oversample_counter + 1'b1;
           baud_tick <= 1'b0;
@@ -50,4 +53,18 @@ module baud_gen #(
       end
     end
   end
+endmodule
+
+module baud_tb ();
+  logic baud_tick, tick_16x, reset, clk;
+  initial begin
+    clk = 1'b0;
+    forever #5 clk = ~clk;  // 10ns period, 100MHz clock
+  end
+  baud_gen baud_gen (
+      .clk,
+      .reset,
+      .baud_tick,
+      .tick_16x
+  );
 endmodule
