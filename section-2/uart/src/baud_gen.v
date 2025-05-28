@@ -2,8 +2,8 @@
 
 module baud_gen #(
     parameter int unsigned BAUD_RATE = 115200,
-    int unsigned CLK_FREQ = 100000000,  // 100 MHz
-    int unsigned OVS_FACTOR = 16  // Oversampling Factor
+    parameter int unsigned CLK_FREQ = 100000000,  // 100 MHz
+    parameter int unsigned OVS_FACTOR = 16  // Oversampling Factor
 ) (
     input  logic clk,
     input  logic reset,

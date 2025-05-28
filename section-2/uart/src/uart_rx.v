@@ -1,8 +1,8 @@
 `default_nettype none `timescale 1ns / 1ns
 
 module uart_rx #(
-    parameter int unsigned DATA_BITS = 8,
-    int unsigned OVS_FACTOR = 16
+    parameter int unsigned DATA_BITS  = 8,
+    parameter int unsigned OVS_FACTOR = 16
 ) (
     input logic clk,
     input logic reset,
