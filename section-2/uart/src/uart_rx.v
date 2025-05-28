@@ -34,8 +34,8 @@ module uart_rx #(
   logic [BITINDEXWIDTH-1:0] bit_index;
   logic prev_rx_pin;
 
-  logic midsample = (logic'(os_count == MIDSAMPLE));
-  logic lasttick = (logic'(os_count == LASTTICK));
+  logic midsample = (os_count == OVSWIDTH'(MIDSAMPLE));
+  logic lasttick = (os_count == OVSWIDTH'(LASTTICK));
 
   always @(posedge clk) begin
     if (reset) begin
