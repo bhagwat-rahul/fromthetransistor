@@ -1,4 +1,13 @@
+# Ignore all files by default
+*
+# Do not ignore directories
+!*/
+# Do not ignore files that contain a dot
+!*.*
+# Ignore dotfiles
 .*
-.bin
+# Don't ignore .gitignore itself
 !.gitignore
-obj_dir
+# Ignore foll dirs their contents
+.bin/
+obj_dir/
