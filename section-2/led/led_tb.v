@@ -5,7 +5,7 @@ module led_tb ();
 
   // Clock generation: 100 MHz
   initial clk = 0;
-  always #5 clk = ~clk;
+  always #5 clk <= ~clk;
 
   // Reset generation: active high for 20 ns
   initial begin
