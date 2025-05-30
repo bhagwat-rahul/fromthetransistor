@@ -4,19 +4,20 @@ module uart_rx_tb ();
 
   logic clk, reset;
   logic tick_16x, rx_pin, parity_enable;
-  logic rx_data, data_ready, parity_err, frame_err;
+  logic [7:0] rx_data;
+  logic data_ready, parity_err, frame_err;
 
   initial begin
-    $display("Holding reset for 20ns");
     reset = 1'b1;
-    #20;  // Hold reset for 20ns
+    $display("Holding reset for 20ns");
+    #20;
     reset = 1'b0;
   end
 
   initial begin
     clk = 1'b0;
-    forever #5 clk = ~clk;  // 100 MHz clk
-    $display("Simulation started with 100MHz clock");
+    $display("Simulation starting with 100MHz clock");
+    forever #5 clk = ~clk;
   end
 
   uart_rx uart_rx_1 (
