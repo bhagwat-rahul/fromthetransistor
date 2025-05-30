@@ -91,7 +91,8 @@ module uart_rx #(
                 if (lasttick) begin
                   os_count <= 0;
                   if (bit_index == BITINDEXWIDTH'(DATA_BITS - 1)) begin
-                    rx_state <= fsm_e'(parity_enable ? ODD_PARITY : STOP);
+                    rx_state  <= fsm_e'(parity_enable ? ODD_PARITY : STOP);
+                    bit_index <= 0;
                   end else begin
                     bit_index <= bit_index + 1;
                   end
