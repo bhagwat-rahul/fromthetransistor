@@ -25,7 +25,7 @@ module uart_rx #(
   } fsm_e;
   fsm_e rx_state;
 
-  localparam int unsigned OVSWIDTH = $clog2(16);
+  localparam int unsigned OVSWIDTH = $clog2(OVS_FACTOR);
   localparam int BITINDEXWIDTH = $clog2(DATA_BITS);
   localparam int unsigned MIDSAMPLE = OVS_FACTOR / 2;
   localparam int unsigned LASTTICK = OVS_FACTOR - 1;
