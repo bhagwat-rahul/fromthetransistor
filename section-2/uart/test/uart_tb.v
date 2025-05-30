@@ -1,6 +1,6 @@
 `default_nettype none `timescale 1ns / 1ns
 
-module uart_testbench ();
+module uart_tb ();
 
   logic clk, reset, rx_pin, send_request, parity_enable;  // ins
   logic frame_err, tx_pin, tx_busy, tx_done, data_ready, parity_err;  // outs
