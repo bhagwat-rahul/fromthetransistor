@@ -49,7 +49,10 @@ module uart_rx #(
       rx_shift    <= 0;
     end else begin
       prev_rx_pin <= rx_pin;
-      unique case (rx_state)
+      case (rx_state)
+        default: begin
+          rx_state <= IDLE;
+        end
         IDLE: begin
           os_count   <= 0;
           rx_data    <= 0;
@@ -64,7 +67,10 @@ module uart_rx #(
         START, DATA, ODD_PARITY, STOP, DONE: begin
           if (tick_16x) begin
             os_count <= os_count + 1;
-            unique case (rx_state)
+            case (rx_state)
+              default: begin
+                rx_state <= IDLE;
+              end
               START: begin
                 if (midsample) begin
                   if (rx_pin == 1'b0) begin
@@ -84,7 +90,7 @@ module uart_rx #(
                 if (lasttick) begin
                   os_count <= 0;
                   if (bit_index == BITINDEXWIDTH'(DATA_BITS - 1)) begin
-                    rx_state <= (parity_enable ? ODD_PARITY : STOP);
+                    rx_state <= fsm_e'(parity_enable ? ODD_PARITY : STOP);
                   end else begin
                     bit_index <= bit_index + 1;
                   end

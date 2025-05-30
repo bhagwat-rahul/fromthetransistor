@@ -38,7 +38,10 @@ module uart_tx #(
       tx_done <= 0;
 
     end else begin
-      unique case (tx_state)
+      case (tx_state)
+        default: begin
+          tx_state <= IDLE;
+        end
         IDLE: begin
           tx_done <= 0;
           tx_busy <= 1'b0;
@@ -51,7 +54,10 @@ module uart_tx #(
         end
         START, DATA, ODD_PARITY, STOP, DONE: begin
           if (baud_tick) begin
-            unique case (tx_state)
+            case (tx_state)
+              default: begin
+                tx_state <= IDLE;
+              end
               START: begin
                 tx_pin <= 1'b0;
                 tx_busy <= 1;
