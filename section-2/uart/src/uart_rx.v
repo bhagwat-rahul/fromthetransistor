@@ -1,8 +1,8 @@
 `default_nettype none `timescale 1ns / 1ns
 
 module uart_rx #(
-    parameter int unsigned DATA_BITS  = 8,
-    parameter int unsigned OVS_FACTOR = 16
+    parameter logic [3:0] DATA_BITS  = 8,  // Max 15
+    parameter logic [4:0] OVS_FACTOR = 16  // Max 31
 ) (
     input logic clk,
     input logic reset,
@@ -25,10 +25,12 @@ module uart_rx #(
   } fsm_e;
   fsm_e rx_state;
 
-  localparam int unsigned OVSWIDTH = $clog2(OVS_FACTOR);
-  localparam int BITINDEXWIDTH = $clog2(DATA_BITS);
-  localparam int unsigned MIDSAMPLE = OVS_FACTOR / 2;
-  localparam int unsigned LASTTICK = OVS_FACTOR - 1;
+  localparam logic [31:0] OVSWIDTH = $clog2(OVS_FACTOR);
+  localparam logic [31:0] BITINDEXWIDTH = $clog2(DATA_BITS);
+
+  localparam logic [4:0] MIDSAMPLE = OVS_FACTOR / 2;
+  localparam logic [4:0] LASTTICK = OVS_FACTOR - 1;
+
   logic [OVSWIDTH-1:0] os_count;
   logic [DATA_BITS-1:0] rx_shift;
   logic [BITINDEXWIDTH-1:0] bit_index;
