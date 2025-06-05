@@ -54,17 +54,3 @@ module baud_gen #(
     end
   end
 endmodule
-
-module baud_tb ();
-  logic baud_tick, tick_16x, reset, clk;
-  initial begin
-    clk = 1'b0;
-    forever #5 clk = ~clk;  // 10ns period, 100MHz clock
-  end
-  baud_gen baud_gen (
-      .clk,
-      .reset,
-      .baud_tick,
-      .tick_16x
-  );
-endmodule
