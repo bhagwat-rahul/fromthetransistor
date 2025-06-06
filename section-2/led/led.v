@@ -7,7 +7,7 @@ module led (
 );
   // We want to blink an led here
   reg [31:0] count;
-  always @(posedge clk or posedge reset) begin
+  always_ff @(posedge clk or posedge reset) begin
     if (reset) begin
       led_1 <= 0;
       count <= 0;
