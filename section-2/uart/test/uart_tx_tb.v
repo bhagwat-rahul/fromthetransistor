@@ -39,7 +39,7 @@ module uart_tx_tb ();
     $finish;
   end
 
-  always_ff @(posedge clk) begin
+  always_ff @(posedge clk or posedge reset) begin
     if (reset) begin
       counter   <= 0;
       baud_tick <= 0;
