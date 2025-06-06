@@ -1,0 +1,57 @@
+`default_nettype none `timescale 1ns / 1ns
+
+module uart_tx_tb ();
+
+  logic clk, reset, baud_tick, send_request, parity_enable;
+  logic [7:0] tx_data;
+  logic tx_pin, tx_busy, tx_done;
+  logic [5:0] counter;
+
+  uart_tx tx1 (
+      .clk,
+      .reset,
+      .baud_tick,
+      .send_request,
+      .tx_data,
+      .parity_enable,
+      .tx_pin,
+      .tx_busy,
+      .tx_done
+  );
+
+  always #5 clk = ~clk;
+
+  initial begin
+    clk = 0;
+    baud_tick = 0;
+    reset = 1;
+    #50 reset = 0;
+    #100 send_request = 1;
+    $display("Clocking, reset done");
+    tx_data = 8'b0101_0101;
+    parity_enable = 1;
+    wait (baud_tick) $display("Got baud");
+    wait (tx_busy == 1);
+    $display("Transmission started, tx_busy asserted");
+    $monitor("Tx Pin: %b at time %0t", tx_pin, $time);
+    wait (tx_done == 1);
+    $display("Data bits: %b (LSB first)", tx_data);
+    $finish;
+  end
+
+  always_ff @(posedge clk) begin
+    if (reset) begin
+      counter   <= 0;
+      baud_tick <= 0;
+    end else begin
+      if (counter == 54) begin
+        counter   <= 0;
+        baud_tick <= 1;
+      end else begin
+        counter   <= counter + 1;
+        baud_tick <= 0;
+      end
+    end
+  end
+
+endmodule
