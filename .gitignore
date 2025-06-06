@@ -6,6 +6,9 @@
 !*.*
 # Ignore dotfiles
 .*
+# Compiler artifacts
+*.hi
+*.o
 # Don't ignore .gitignore itself
 !.gitignore
 # Ignore foll dirs their contents
