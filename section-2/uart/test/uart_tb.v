@@ -5,7 +5,6 @@ module uart_tb ();
   logic clk, reset, rx_pin, send_request, parity_enable;
   logic frame_err, tx_pin, tx_busy, tx_done, data_ready, parity_err;
   logic [7:0] tx_data, rx_data;
-  initial parity_enable = 1;
 
   uart uart (
       .clk(clk),
@@ -28,6 +27,7 @@ module uart_tb ();
   always #5 clk = ~clk;
 
   initial begin
+    parity_enable = 1;
     clk = 1'b0;
     $display("bout to reset at time:- %0t", $time);
     reset = 1'b1;
