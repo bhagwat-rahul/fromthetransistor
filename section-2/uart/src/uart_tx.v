@@ -22,11 +22,11 @@ module uart_tx #(
     STOP,
     DONE
   } fsm_e;
-  fsm_e tx_state;
 
   localparam int unsigned INDEXWIDTH = $clog2(DATA_BITS);
   logic [INDEXWIDTH-1:0] bit_index;
   logic [ DATA_BITS-1:0] tx_shift;
+  fsm_e tx_state, next_tx_state;
 
   always @(posedge clk or posedge reset) begin
     if (reset) begin
@@ -36,7 +36,6 @@ module uart_tx #(
       bit_index <= 0;
       tx_busy <= 0;
       tx_done <= 0;
-
     end else begin
       case (tx_state)
         default: begin
