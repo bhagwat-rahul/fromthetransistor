@@ -4,6 +4,8 @@
 !*/
 # Do not ignore files that contain a dot
 !*.*
+# Don't ignore Makefiles
+!*Makefile
 # Ignore dotfiles
 .*
 # Compiler artifacts
@@ -14,3 +16,4 @@
 # Ignore foll dirs their contents
 .bin/
 obj_dir/
+build/
