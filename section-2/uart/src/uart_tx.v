@@ -31,7 +31,7 @@ module uart_tx #(
   logic tx_done_reg, next_tx_done;
   fsm_e tx_state, next_tx_state;
 
-  always @(posedge clk or posedge reset) begin
+  always_ff @(posedge clk or posedge reset) begin
     if (reset) begin
       tx_shift    <= {DATA_BITS{1'b1}};
       tx_state    <= IDLE;
