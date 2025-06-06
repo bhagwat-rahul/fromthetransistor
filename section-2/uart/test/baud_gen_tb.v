@@ -4,14 +4,16 @@ module baud_gen_tb ();
 
   logic baud_tick, tick_16x, reset, clk;
 
+  always #5 clk = ~clk;
+
   initial begin
     clk   = 0;
     reset = 1;
     #50 reset = 0;
+    $monitor("Time=%0t baud_tick=%b tick_16x=%b", $time, baud_tick, tick_16x);
+    #100000;
+    $finish;
   end
-
-  always #5 clk = ~clk;  // 10ns period, 100MHz clock
-  initial $monitor("Time=%0t baud_tick=%b tick_16x=%b", $time, baud_tick, tick_16x);
 
   baud_gen baud_gen (
       .clk,
