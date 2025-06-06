@@ -37,19 +37,19 @@ $(BUILD_DIR):
 
 # --- Test Targets ---
 
-test_tx: $(BUILD_DIR)
+tx: $(BUILD_DIR)
 	$(IVERILOG) $(VFLAGS) -o $(OUT_TX) $(SRC_TX) $(TB_TX)
 	$(VVP) $(OUT_TX)
 
-test_rx: $(BUILD_DIR)
+rx: $(BUILD_DIR)
 	$(IVERILOG) $(VFLAGS) -o $(OUT_RX) $(SRC_RX) $(TB_RX)
 	$(VVP) $(OUT_RX)
 
-test_baud: $(BUILD_DIR)
+baud: $(BUILD_DIR)
 	$(IVERILOG) $(VFLAGS) -o $(OUT_BAUD) $(SRC_BAUD) $(TB_BAUD)
 	$(VVP) $(OUT_BAUD)
 
-test_uart: $(BUILD_DIR)
+uart: $(BUILD_DIR)
 	$(IVERILOG) $(VFLAGS) -o $(OUT_UART) $(SRC_UART) $(TB_UART)
 	$(VVP) $(OUT_UART)
 
