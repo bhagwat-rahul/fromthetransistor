@@ -5,9 +5,7 @@ module baud_gen_tb ();
   logic baud_tick, tick_16x, reset, clk;
 
   initial begin
-    clk = 0;
-    baud_tick = 0;
-    tick_16x = 0;
+    clk   = 0;
     reset = 1;
     #50 reset = 0;
   end
