@@ -30,9 +30,9 @@ module uart_rx #(
   localparam logic [4:0] MIDSAMPLE = OVS_FACTOR / 2;
   localparam logic [4:0] LASTTICK = OVS_FACTOR - 1;
 
-  logic [OVSWIDTH-1:0] os_count;
+  logic [ OVSWIDTH-1:0] os_count;
   logic [DATA_BITS-1:0] rx_shift;
-  logic [BITINDEXWIDTH-1:0] bit_index;
+  logic [BITINDEXWIDTH-1:0] bit_index, next_bit_index;
   logic midsample = (os_count == OVSWIDTH'(MIDSAMPLE));
   logic lasttick = (os_count == OVSWIDTH'(LASTTICK));
 
@@ -54,12 +54,32 @@ module uart_rx #(
   always_comb begin
     case (rx_state)
       default: next_rx_state = IDLE;
-      IDLE: ;
-      START: ;
-      DATA: ;
-      ODD_PARITY: ;
-      STOP: ;
-      DONE: ;
+      IDLE: begin
+        next_rx_state = (rx_pin == 0) ? START : IDLE;
+      end
+      START: begin
+
+      end
+      DATA: begin
+        if (bit_index == DATA_BITS) begin
+          next_rx_state  = (parity_enable) ? ODD_PARITY : STOP;
+          next_bit_index = 0;
+        end else begin
+          next_rx_state      = DATA;
+          rx_data[bit_index] = rx_pin;
+          next_bit_index     = bit_index + 1;
+        end
+      end
+      ODD_PARITY: begin
+      end
+      STOP: begin
+        frame_err     = (rx_pin == 0) ? 1 : 0;
+        next_rx_state = DONE;
+      end
+      DONE: begin
+        data_ready    = 1;
+        next_rx_state = IDLE;
+      end
     endcase
   end
 
