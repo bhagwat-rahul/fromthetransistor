@@ -30,13 +30,12 @@ module uart_rx #(
   localparam logic [4:0] MIDSAMPLE = OVS_FACTOR / 2;
   localparam logic [4:0] LASTTICK = OVS_FACTOR - 1;
 
-  logic [ OVSWIDTH-1:0] os_count;
-  logic [DATA_BITS-1:0] rx_shift;
+  logic [OVSWIDTH-1:0] os_count, next_os_count;
+  logic [DATA_BITS-1:0] rx_shift, next_rx_shift;
   logic [BITINDEXWIDTH-1:0] bit_index, next_bit_index;
   logic midsample = (os_count == OVSWIDTH'(MIDSAMPLE));
   logic lasttick = (os_count == OVSWIDTH'(LASTTICK));
   logic lastbit = (bit_index == DATA_BITS);
-  logic [DATA_BITS-1:0] next_rx_data;
   logic next_data_ready, next_parity_err, next_frame_err;
 
   always_ff @(posedge clk or posedge reset) begin
@@ -50,44 +49,52 @@ module uart_rx #(
       rx_shift   <= 0;
       bit_index  <= 0;
     end else if (tick_16x) begin
-      if (midsample) begin
-        // Midsample stuff
-        os_count <= os_count + 1;
-      end else if (lasttick) begin
-        // Last tick stuff
-        os_count <= 0;
-      end else begin
-        // Do when neither
-        os_count <= os_count + 1;
-      end
+      rx_state   <= next_rx_state;
+      os_count   <= next_os_count;
+      bit_index  <= next_bit_index;
+      rx_shift   <= next_rx_shift;
+      data_ready <= next_data_ready;
+      parity_err <= next_parity_err;
+      frame_err  <= next_frame_err;
     end
   end
 
   always_comb begin
-    next_frame_err  = 0;
-    next_rx_data    = 0;
-    next_parity_err = 0;
+    next_rx_state   = rx_state;
+    next_os_count   = os_count;
+    next_bit_index  = bit_index;
+    next_rx_shift   = rx_shift;
     next_data_ready = 0;
-    next_bit_index  = 0;
+    next_parity_err = parity_err;
+    next_frame_err  = frame_err;
     case (rx_state)
       default: next_rx_state = IDLE;
       IDLE: begin
-        next_rx_state = (rx_pin == 0) ? START : IDLE;
+        next_rx_state   = (rx_pin == 0) ? START : IDLE;
+        next_os_count   = 0;
+        next_rx_shift   = 0;
+        next_parity_err = 0;
+        next_frame_err  = 0;
       end
       START: begin
 
       end
-      DATA: begin
+      DATA: begin  // TODO: Handling of samples is incorrect fix
         if (lastbit) begin
-          next_rx_state  = (parity_enable) ? ODD_PARITY : STOP;
-          next_bit_index = 0;
+          next_rx_shift[bit_index] = rx_pin;
+          next_rx_state            = (parity_enable) ? ODD_PARITY : STOP;
+          next_bit_index           = 0;
+        end else if (midsample) begin
+          next_rx_state            = DATA;
+          next_rx_shift[bit_index] = rx_pin;
+          next_bit_index           = bit_index + 1;
         end else begin
-          next_rx_state           = DATA;
-          next_rx_data[bit_index] = rx_pin;
-          next_bit_index          = bit_index + 1;
+
         end
       end
       ODD_PARITY: begin
+        next_parity_err = ~^rx_shift;
+        next_rx_state   = STOP;
       end
       STOP: begin
         next_frame_err = (rx_pin == 0) ? 1 : 0;
