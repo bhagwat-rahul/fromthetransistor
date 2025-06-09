@@ -35,7 +35,7 @@ module uart_rx #(
   logic [BITINDEXWIDTH-1:0] bit_index, next_bit_index;
   logic midsample = (os_count == OVSWIDTH'(MIDSAMPLE));
   logic lasttick = (os_count == OVSWIDTH'(LASTTICK));
-  logic lastbit = (bit_index == (DATA_BITS - 1));
+  logic lastbit = (bit_index == BITINDEXWIDTH'(DATA_BITS - 1));
   logic next_data_ready, next_parity_err, next_frame_err;
 
   initial begin
