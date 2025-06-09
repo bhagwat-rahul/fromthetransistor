@@ -79,7 +79,7 @@ module uart_tx #(
       DATA: begin
         next_tx_busy = 1;
         next_tx_pin  = tx_shift[bit_index];
-        if (bit_index == (DATA_BITS - 1)) begin
+        if (bit_index == INDEXWIDTH'(DATA_BITS - 1)) begin
           next_tx_state  = fsm_e'(parity_enable ? ODD_PARITY : STOP);
           next_bit_index = 0;
         end else begin
