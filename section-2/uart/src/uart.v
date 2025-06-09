@@ -1,6 +1,11 @@
 `default_nettype none `timescale 1ns / 1ns
 
-module uart (
+module uart #(
+    parameter int DATA_BITS = 8,
+    parameter int unsigned BAUD_RATE = 115200,
+    parameter int unsigned CLK_FREQ = 100000000,  // 100 MHz
+    parameter logic [4:0] OVS_FACTOR = 16
+) (
     input logic       clk,
     input logic       reset,
     input logic       rx_pin,
@@ -19,14 +24,30 @@ module uart (
 
   logic baud_tick, tick_16x;
 
-  baud_gen baud_gen_a (
+  initial begin
+    if ((OVS_FACTOR & (OVS_FACTOR - 1)) != 0)
+      $fatal(1, "OVS_FACTOR must be power of 2, got %0d", OVS_FACTOR);
+    if (DATA_BITS > 15) $fatal(1, "DATA_BITS must be 15 or below, got %0d", DATA_BITS);
+    if (CLK_FREQ > 100000000) $fatal(1, "CLK_FREQ must be below 100MHz, got %0d", DATA_BITS);
+    if (BAUD_RATE % 9600 != 0 || BAUD_RATE < 9600 || BAUD_RATE > 115200)
+      $fatal(1, "BAUD_RATE must be multiple of 9600 upto 115200, got:- %0d", BAUD_RATE);
+  end
+
+  baud_gen #(
+      .BAUD_RATE (BAUD_RATE),
+      .CLK_FREQ  (CLK_FREQ),
+      .OVS_FACTOR(OVS_FACTOR)
+  ) baud_gen_a (
       .clk(clk),
       .reset(reset),
       .baud_tick(baud_tick),
       .tick_16x(tick_16x)
   );
 
-  uart_rx uart_rx_a (
+  uart_rx #(
+      .DATA_BITS (DATA_BITS),
+      .OVS_FACTOR(OVS_FACTOR)
+  ) uart_rx_a (
       .clk(clk),
       .reset(reset),
       .tick_16x(tick_16x),
@@ -38,7 +59,9 @@ module uart (
       .frame_err(frame_err)
   );
 
-  uart_tx uart_tx_a (
+  uart_tx #(
+      .DATA_BITS(DATA_BITS)
+  ) uart_tx_a (
       .clk(clk),
       .reset(reset),
       .baud_tick(baud_tick),
