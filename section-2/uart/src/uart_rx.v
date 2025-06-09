@@ -1,8 +1,8 @@
 `default_nettype none `timescale 1ns / 1ns
 
 module uart_rx #(
-    parameter logic [3:0] DATA_BITS  = 8,  // Max 15
-    parameter logic [4:0] OVS_FACTOR = 16  // Max 31
+    parameter logic [3:0] DATA_BITS  = 8,
+    parameter logic [4:0] OVS_FACTOR = 16
 ) (
     input logic clk,
     input logic reset,
@@ -35,8 +35,13 @@ module uart_rx #(
   logic [BITINDEXWIDTH-1:0] bit_index, next_bit_index;
   logic midsample = (os_count == OVSWIDTH'(MIDSAMPLE));
   logic lasttick = (os_count == OVSWIDTH'(LASTTICK));
-  logic lastbit = (bit_index == DATA_BITS);
+  logic lastbit = (bit_index == (DATA_BITS - 1));
   logic next_data_ready, next_parity_err, next_frame_err;
+
+  initial begin
+    if ((OVS_FACTOR & (OVS_FACTOR - 1)) != 0)
+      $fatal(1, "OVS_FACTOR must be power of 2, got %0d", OVS_FACTOR);
+  end
 
   always_ff @(posedge clk or posedge reset) begin
     if (reset) begin
@@ -70,7 +75,7 @@ module uart_rx #(
     case (rx_state)
       default: next_rx_state = IDLE;
       IDLE: begin
-        next_rx_state   = (rx_pin == 0) ? START : IDLE;
+        next_rx_state   = fsm_e'((rx_pin == 0) ? START : IDLE);
         next_os_count   = 0;
         next_rx_shift   = 0;
         next_parity_err = 0;
@@ -82,7 +87,7 @@ module uart_rx #(
       DATA: begin  // TODO: Handling of samples is incorrect fix
         if (lastbit) begin
           next_rx_shift[bit_index] = rx_pin;
-          next_rx_state            = (parity_enable) ? ODD_PARITY : STOP;
+          next_rx_state            = fsm_e'((parity_enable) ? ODD_PARITY : STOP);
           next_bit_index           = 0;
         end else if (midsample) begin
           next_rx_state            = DATA;
