@@ -31,12 +31,14 @@ module uart_rx #(
   localparam logic [4:0] LASTTICK = OVS_FACTOR - 1;
 
   logic [OVSWIDTH-1:0] os_count, next_os_count;
-  logic [DATA_BITS-1:0] rx_shift, next_rx_shift;
+  logic [DATA_BITS-1:0] rx_shift;
   logic [BITINDEXWIDTH-1:0] bit_index, next_bit_index;
   logic midsample = (os_count == OVSWIDTH'(MIDSAMPLE));
   logic lasttick = (os_count == OVSWIDTH'(LASTTICK));
   logic lastbit = (bit_index == BITINDEXWIDTH'(DATA_BITS - 1));
   logic next_data_ready, next_parity_err, next_frame_err;
+  logic parity_err_reg, data_ready_reg, frame_err_reg;
+  logic [DATA_BITS-1:0] rx_data_reg, next_rx_data_reg;
 
   initial begin
     if ((OVS_FACTOR & (OVS_FACTOR - 1)) != 0)
@@ -45,71 +47,76 @@ module uart_rx #(
 
   always_ff @(posedge clk or posedge reset) begin
     if (reset) begin
-      rx_state   <= IDLE;
-      frame_err  <= 0;
-      rx_data    <= 0;
-      parity_err <= 0;
-      data_ready <= 0;
-      os_count   <= 0;
-      rx_shift   <= 0;
-      bit_index  <= 0;
+      rx_state       <= IDLE;
+      os_count       <= 0;
+      rx_shift       <= 0;
+      bit_index      <= 0;
+      frame_err_reg  <= 0;
+      rx_data_reg    <= 0;
+      parity_err_reg <= 0;
+      data_ready_reg <= 0;
     end else if (tick_16x) begin
-      rx_state   <= next_rx_state;
-      os_count   <= next_os_count;
-      bit_index  <= next_bit_index;
-      rx_shift   <= next_rx_shift;
-      data_ready <= next_data_ready;
-      parity_err <= next_parity_err;
-      frame_err  <= next_frame_err;
+      rx_data_reg    <= next_rx_data_reg;
+      rx_state       <= next_rx_state;
+      os_count       <= next_os_count;
+      bit_index      <= next_bit_index;
+      data_ready_reg <= next_data_ready;
+      parity_err_reg <= next_parity_err;
+      frame_err_reg  <= next_frame_err;
     end
   end
 
   always_comb begin
-    next_rx_state   = rx_state;
-    next_os_count   = os_count;
-    next_bit_index  = bit_index;
-    next_rx_shift   = rx_shift;
-    next_data_ready = 0;
-    next_parity_err = parity_err;
-    next_frame_err  = frame_err;
-    case (rx_state)
-      default: next_rx_state = IDLE;
-      IDLE: begin
-        next_rx_state   = fsm_e'((rx_pin == 0) ? START : IDLE);
-        next_os_count   = 0;
-        next_rx_shift   = 0;
-        next_parity_err = 0;
-        next_frame_err  = 0;
-      end
-      START: begin
-
-      end
-      DATA: begin  // TODO: Handling of samples is incorrect fix
-        if (lastbit) begin
-          next_rx_shift[bit_index] = rx_pin;
-          next_rx_state            = fsm_e'((parity_enable) ? ODD_PARITY : STOP);
-          next_bit_index           = 0;
-        end else if (midsample) begin
-          next_rx_state            = DATA;
-          next_rx_shift[bit_index] = rx_pin;
-          next_bit_index           = bit_index + 1;
-        end else begin
-
+    next_rx_state    = rx_state;
+    next_os_count    = os_count;
+    next_bit_index   = bit_index;
+    next_data_ready  = 0;
+    next_parity_err  = parity_err_reg;
+    next_frame_err   = frame_err_reg;
+    next_rx_data_reg = rx_data_reg;
+    if (rx_state == IDLE) begin
+      next_rx_state   = fsm_e'((rx_pin == 0) ? START : IDLE);
+      next_os_count   = 0;
+      next_parity_err = 0;
+      next_frame_err  = 0;
+    end else if (lasttick) begin
+      next_os_count = 0;
+      case (rx_state)
+        default: next_rx_state = IDLE;
+        START: begin
+          next_rx_state = DATA;
         end
-      end
-      ODD_PARITY: begin
-        next_parity_err = ~^rx_shift;
-        next_rx_state   = STOP;
-      end
-      STOP: begin
-        next_frame_err = (rx_pin == 0) ? 1 : 0;
-        next_rx_state  = DONE;
-      end
-      DONE: begin
-        next_data_ready = 1;
-        next_rx_state   = IDLE;
-      end
-    endcase
+        DATA: begin
+          if (lastbit) begin
+            next_rx_state = fsm_e'((parity_enable) ? ODD_PARITY : STOP);
+            next_rx_data_reg[bit_index] = rx_pin;
+            next_bit_index = 0;
+          end else begin
+            next_bit_index = bit_index + 1;
+            next_rx_data_reg[bit_index] = rx_pin;
+          end
+        end
+        ODD_PARITY: begin
+          next_parity_err = ~(^rx_data_reg ^ rx_pin);
+          next_rx_state   = STOP;
+        end
+        STOP: begin
+          next_frame_err = (rx_pin == 0) ? 1 : 0;
+          next_rx_state  = DONE;
+        end
+        DONE: begin
+          next_data_ready = 1;
+          next_rx_state   = IDLE;
+        end
+      endcase
+    end else begin
+      next_os_count = os_count + 1;
+    end
   end
+
+  assign rx_data    = rx_data_reg;
+  assign parity_err = parity_err_reg;
+  assign data_ready = data_ready_reg;
+  assign frame_err  = frame_err_reg;
 
 endmodule
