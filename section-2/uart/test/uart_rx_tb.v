@@ -23,13 +23,18 @@ module uart_rx_tb ();
   always #5 clk = ~clk;
 
   initial begin
-    clk   = 0;
+    $monitor(
+        "RX Data: %b and rx_pin: %b, frame err: %b, data_ready: %b, state: %0d, os_count: %0d, time: %0t",
+        rx_data, rx_pin, frame_err, data_ready, uart_rx_1.rx_state, uart_rx_1.os_count, $time);
+    clk = 0;
     reset = 1;
+    rx_pin = 1;
+    parity_enable = 1;
     #50 reset = 0;
     $display("reset done!");
-    wait (tick_16x) $display("Got tick");
-    rx_pin = 0;
-    $monitor("RX Data is: %b", rx_data);
+    wait_ticks(16);
+    send_uart_frame(8'b0100_1110, 1);
+    wait_ticks(34);
     $finish;
   end
 
@@ -47,4 +52,37 @@ module uart_rx_tb ();
       end
     end
   end
+
+  task automatic send_uart_frame(input logic [7:0] data, input logic parity);
+    int i;
+    // Start bit
+    rx_pin = 0;
+    wait_ticks(16);
+    // Data bits (LSB first)
+    for (i = 0; i < 8; i++) begin
+      rx_pin = data[i];
+      wait_ticks(16);
+    end
+    // Parity bit
+    rx_pin = parity;
+    wait_ticks(16);
+    // Stop bit
+    rx_pin = 1;
+    wait_ticks(16);
+  endtask
+
+  task automatic wait_ticks(input int num_ticks);
+    int count;
+    begin
+      count = 0;
+      forever begin
+        @(posedge clk);
+        if (tick_16x) begin
+          count++;
+          if (count == num_ticks) break;
+        end
+      end
+    end
+  endtask
+
 endmodule
