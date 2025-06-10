@@ -33,9 +33,9 @@ module uart_rx #(
   logic [OVSWIDTH-1:0] os_count, next_os_count;
   logic [DATA_BITS-1:0] rx_shift;
   logic [BITINDEXWIDTH-1:0] bit_index, next_bit_index;
-  logic midsample = (os_count == OVSWIDTH'(MIDSAMPLE));
-  logic lasttick = (os_count == OVSWIDTH'(LASTTICK));
-  logic lastbit = (bit_index == BITINDEXWIDTH'(DATA_BITS - 1));
+  logic midsample;
+  logic lasttick;
+  logic lastbit;
   logic next_data_ready, next_parity_err, next_frame_err;
   logic parity_err_reg, data_ready_reg, frame_err_reg;
   logic [DATA_BITS-1:0] rx_data_reg, next_rx_data_reg;
@@ -67,6 +67,9 @@ module uart_rx #(
   end
 
   always_comb begin
+    lasttick = (os_count == OVSWIDTH'(LASTTICK));
+    midsample = (os_count == OVSWIDTH'(MIDSAMPLE));
+    lastbit = (bit_index == BITINDEXWIDTH'(DATA_BITS - 1));
     next_rx_state    = rx_state;
     next_os_count    = os_count;
     next_bit_index   = bit_index;
