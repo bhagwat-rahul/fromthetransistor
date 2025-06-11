@@ -5,7 +5,8 @@ keywords = ["return", "if", "while", "for", "switch", "typedef", "sizeof", "else
 
 datatypes = ["int", "void", "char", "bool", "float", "double", "short", "long", "struct", "union", "enum"]
 
-operators = ["+", "-", "*", "/", "%", "&", "|", "||", "&&", "=", "==", "!=", "<", ">", "<=", ">=", "!", "~", "^"]
+-- Operators in order of descending C precedence
+operators = ["!", "~", "*", "/", "%", "+", "-", "<", "<=", ">", ">=", "==", "!=", "&", "^", "|", "&&", "||", "="]
 
 punctuation = ["{", "}", "(", ")", ",", ";", ":"]
 
