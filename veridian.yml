@@ -25,7 +25,7 @@ verilator:
       - -Isection-1
       - -Isection-2/led
       - -Isection-2/uart/src
-      - -Isection-3
+      - -Isection-3/riscv/src
       - -Isection-4
       - -Isection-5
       - -Isection-6
