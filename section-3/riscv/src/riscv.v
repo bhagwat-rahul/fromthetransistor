@@ -11,8 +11,7 @@ module riscv #(
 
   always_ff @(posedge clk or negedge resetn) begin
     if (resetn == 0) begin
-      pc      <= RESETVEC;
-      next_pc <= RESETVEC;
+      pc <= RESETVEC;
     end else begin
       pc <= next_pc;
     end
