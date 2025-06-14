@@ -20,15 +20,16 @@ module riscv #(
   reg [63:0] pc, next_pc;
 
   always_ff @(posedge clk or negedge resetn) begin
-    if (!resetn) begin
-      pc <= RESETVEC;
+    if (resetn == 0) begin
+      pc      <= RESETVEC;
+      next_pc <= RESETVEC;
     end else begin
       pc <= next_pc;
     end
   end
 
   always_comb begin
-    next_pc = pc;  // stay the same if nothing
+    next_pc = pc;
   end
 
 endmodule
