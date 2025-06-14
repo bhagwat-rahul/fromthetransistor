@@ -29,11 +29,11 @@ SRC_WRITEBACK = $(PIPELINE_DIR)/writeback.v
 
 # Testbenches
 TB_RISCV     = $(TEST_DIR)/riscv_tb.v
-TB_EXEC      = $(TEST_DIR)/exec
-TB_IDECODE   = $(TEST_DIR)/idecode
-TB_IFETCH    = $(TEST_DIR)/ifetch
-TB_MEMACC    = $(TEST_DIR)/memacc
-TB_WRITEBACK = $(TEST_DIR)/writeback
+TB_EXEC      = $(TEST_DIR)/exec_tb.v
+TB_IDECODE   = $(TEST_DIR)/idecode_tb.v
+TB_IFETCH    = $(TEST_DIR)/ifetch_tb.v
+TB_MEMACC    = $(TEST_DIR)/memacc_tb.v
+TB_WRITEBACK = $(TEST_DIR)/writeback_tb.v
 
 # Ensure build dir exists
 $(BUILD_DIR):
