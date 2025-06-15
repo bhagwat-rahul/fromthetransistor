@@ -4,7 +4,10 @@ module baud_gen_tb ();
 
   logic baud_tick, tick_16x, reset, clk;
 
+  // verilator lint_off BLKSEQ
   always #5 clk = ~clk;
+  // verilator lint_on BLKSEQ
+
 
   initial begin
     clk   = 0;

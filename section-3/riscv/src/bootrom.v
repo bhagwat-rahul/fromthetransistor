@@ -6,26 +6,25 @@ The purpose of the bootrom is to just get cpu in an init state to start running 
 **/
 
 module bootrom #(
-    parameter string       INIT_FILE  = "bootrom.bin",  // gen from ../bootrom.asm
-    parameter int unsigned ADDR_WIDTH = 8,
-    parameter int unsigned DATA_WIDTH = 64
+    parameter string INIT_FILE = "bootrom.bin",  // gen from ../bootrom.asm
+    parameter logic [15:0] BROM_SIZE_BYTES = 4096,  // 4 KiB Bootrom
+    parameter logic [8:0] XLEN = 64,
+    parameter logic [8:0] DATA_WIDTH = XLEN,
+    localparam int unsigned ADDRWIDTH = $clog2(BROM_SIZE_BYTES)
 ) (
     input  logic                  clk,
-    input  logic [ADDR_WIDTH-1:0] addr,
+    input  logic [ ADDRWIDTH-1:0] addr,
     output logic [DATA_WIDTH-1:0] rdata
 );
 
-  logic [DATA_WIDTH-1:0] mem[(1<<ADDR_WIDTH)-1];
+  logic [7:0] mem[BROM_SIZE_BYTES];
 
-  initial begin
-    if (!(DATA_WIDTH % 8 == 0)) begin
-      $fatal(0, "DATA_WIDTH must be a byte (8) multiple, got: (%0d)", DATA_WIDTH);
-    end
-    $readmemb(INIT_FILE, mem);
-  end
+  initial $readmemb(INIT_FILE, mem);
 
   always_ff @(posedge clk) begin
-    rdata <= mem[addr];
+    for (int i = 0; i < (int'(XLEN) / 8); i++) begin
+      rdata[i*8+:8] <= mem[int'(addr)+i];
+    end
   end
 
 endmodule
