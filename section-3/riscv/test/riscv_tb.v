@@ -4,7 +4,10 @@ module riscv_tb ();
 
   logic clk, resetn;
 
-  always #5 clk = ~clk;  // 100 MHz
+  // verilator lint_off BLKSEQ
+  always #5 clk = ~clk;
+  // verilator lint_on BLKSEQ
+
 
   initial begin
     clk    = 0;
@@ -18,7 +21,7 @@ module riscv_tb ();
   end
 
   riscv #(
-      .RESETVEC(64'h8000_0000)
+      .XLEN(64)
   ) riscv_a (
       .clk,
       .resetn
