@@ -27,4 +27,11 @@ module riscv #(
     next_pc = pc;
   end
 
+
+  /* Module Instantiations
+
+  regfile #(.XLEN(9'd64)) regfile_a (.clk,.resetn,.we,.rs1,.rs2,.rd,.wd,.rd1,.rd2);
+
+  */
+
 endmodule
