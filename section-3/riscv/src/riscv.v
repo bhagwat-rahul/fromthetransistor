@@ -1,7 +1,7 @@
 `default_nettype none `timescale 1ns / 1ns
 
 module riscv #(
-    parameter logic [8:0] XLEN = 64,  // Upto 128 if needed, realistically only 32/64
+    parameter logic [8:0] XLEN = 9'd64,  // Upto 128 if needed, realistically only 32/64
     parameter logic [31:0] BASE_RESETVEC = 32'h8000_0000,
     parameter logic [XLEN-1:0] RESETVEC = {{(XLEN - 32) {1'b0}}, BASE_RESETVEC}
 ) (

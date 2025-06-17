@@ -3,7 +3,7 @@
 // Register File
 
 module regfile #(
-    parameter logic [8:0] XLEN = 64
+    parameter logic [8:0] XLEN = 9'd64
 ) (
     input logic clk,
     input logic resetn,
