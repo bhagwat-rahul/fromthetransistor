@@ -6,7 +6,7 @@ The purpose of the bootrom is to just get cpu in an init state to start running 
 **/
 
 module bootrom #(
-    parameter string INIT_FILE = "bootrom.bin",  // gen from ../bootrom.asm
+    parameter string INIT_FILE = "bootrom.bin",  // gen from ../bootrom/bootrom.asm
     parameter logic [15:0] BROM_SIZE_BYTES = 4096,  // 4 KiB Bootrom
     parameter logic [8:0] XLEN = 9'd64,
     parameter logic [8:0] DATA_WIDTH = XLEN,
