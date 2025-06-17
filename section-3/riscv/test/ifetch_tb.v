@@ -9,6 +9,8 @@ module ifetch_tb #(
   logic [31:0] instruction, imem_addr;
   logic [XLEN-1:0] pc_next, imem_data, pc_current;
 
+  always #5 clk = ~clk;
+
   initial begin
     $monitor(
         "imem_req: %0d, instr_valid: %0d, instr: %0d, imem_addr = %0d, imem_ready: %0d, state: %0d",
@@ -27,8 +29,6 @@ module ifetch_tb #(
     imem_data  = 64'hx726168756C2121;
     #200 $finish;
   end
-  always #5 clk = ~clk;
-
 
   ifetch #(
       .XLEN(XLEN)
