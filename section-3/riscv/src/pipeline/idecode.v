@@ -111,14 +111,16 @@ module idecode #(
 
     case (instr[6:0])
       default: ;  // NOP or unknown do nothing
-      7'b0110011: ;  // R Type
-      7'b0010011: ;  // I Type
-      7'b1100111: ;  // I Type as well
-      7'b1110011: ;  // I Type as well again
-      7'b0100011: ;  // S Type
-      7'b1100011: ;  // B Type
-      7'b0110111: ;  // U Type
-      7'b1101111: ;  // J Type
+      7'b0110011: ;  // R Type ADD, SUB, XOR, OR, AND, SLT, etc.
+      7'b0010011: ;  // I Type ADDI, ORI, ANDI, SLTI, etc.
+      7'b0000011: ;  // I Type LB, LH, LW, LBU, LHU (loads)
+      7'b1100111: ;  // I Type JALR
+      7'b1110011: ;  // I Type ECALL, EBREAK, CSR ops
+      7'b0100011: ;  // S Type SB, SH, SW (stores)
+      7'b1100011: ;  // B Type BEQ, BNE, BLT, BGE, BLTU, BGEU
+      7'b0110111: ;  // U Type LUI
+      7'b0010111: ;  // U Type AUIPC
+      7'b1101111: ;  // J Type JAL
     endcase
   end
 
