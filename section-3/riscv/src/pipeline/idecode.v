@@ -30,16 +30,17 @@ module idecode #(
 );
 
   localparam logic [3:0]
-  ADD  = 4'b0010,
-  SUB  = 4'b0110,
-  AND  = 4'b0000,
-  OR   = 4'b0001,
-  XOR  = 4'b0111,
-  SLL  = 4'b1001,
+  NOP  = 4'b0000,
+  ADD  = 4'b0001,
+  SUB  = 4'b0010,
+  AND  = 4'b0011,
+  OR   = 4'b0100,
+  XOR  = 4'b0101,
+  SLL  = 4'b0110,
   SRL  = 4'b0111,
-  SRA  = 4'b0100,
-  SLT  = 4'b1000,
-  SLTU = 4'b0101;
+  SRA  = 4'b1000,
+  SLT  = 4'b1001,
+  SLTU = 4'b1010;
 
   // Internal pipeline registers
   logic [6:0] opcode_reg, opcode_reg_next;
@@ -65,7 +66,7 @@ module idecode #(
       funct3_reg <= 3'd0;
       funct7_reg <= 7'd0;
       imm_reg <= {XLEN{1'b0}};
-      alu_op_reg <= 4'b0;
+      alu_op_reg <= NOP;
       reg_write_enable_reg <= 0;
       mem_read_reg <= 0;
       mem_write_reg <= 0;
@@ -122,24 +123,24 @@ module idecode #(
     funct7_reg_next = instr[31:25];
 
     case (instr[6:0])
-      default: ;  // NOP or unknown do nothing
+      default:    ;  // NOP or unknown do nothing
       7'b0110011: begin
-      case (opcode_reg_next)
-        7'b0110011: begin // R-type
-          reg_write_enable_reg_next = 1'b1;
-          case ({funct7_reg_next, funct3_reg_next})
-            10'b0000000_000: alu_op_reg_next = ADD;
-            10'b0100000_000: alu_op_reg_next = SUB;
-            10'b0000000_111: alu_op_reg_next = AND;
-            10'b0000000_110: alu_op_reg_next = OR;
-            10'b0000000_100: alu_op_reg_next = XOR;
-            10'b0000000_001: alu_op_reg_next = SLL;
-            10'b0000000_101: alu_op_reg_next = SRL;
-            10'b0100000_101: alu_op_reg_next = SRA;
-            10'b0000000_010: alu_op_reg_next = SLT;
-            10'b0000000_011: alu_op_reg_next = SLTU;
-            default        : alu_op_reg_next = AND;
-          endcase
+        reg_write_enable_reg_next = 1'b1;
+        case ({
+          funct7_reg_next, funct3_reg_next
+        })
+          10'b0000000_000: alu_op_reg_next = ADD;
+          10'b0100000_000: alu_op_reg_next = SUB;
+          10'b0000000_111: alu_op_reg_next = AND;
+          10'b0000000_110: alu_op_reg_next = OR;
+          10'b0000000_100: alu_op_reg_next = XOR;
+          10'b0000000_001: alu_op_reg_next = SLL;
+          10'b0000000_101: alu_op_reg_next = SRL;
+          10'b0100000_101: alu_op_reg_next = SRA;
+          10'b0000000_010: alu_op_reg_next = SLT;
+          10'b0000000_011: alu_op_reg_next = SLTU;
+          default:         alu_op_reg_next = AND;
+        endcase
       end  // R Type ADD, SUB, XOR, OR, AND, SLT, etc.
       7'b0010011: begin
 
