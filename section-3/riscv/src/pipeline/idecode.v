@@ -111,7 +111,9 @@ module idecode #(
 
     case (instr[6:0])
       default: ;  // NOP or unknown do nothing
-      7'b0110011: ;  // R Type ADD, SUB, XOR, OR, AND, SLT, etc.
+      7'b0110011: begin
+
+      end  // R Type ADD, SUB, XOR, OR, AND, SLT, etc.
       7'b0010011: ;  // I Type ADDI, ORI, ANDI, SLTI, etc.
       7'b0000011: ;  // I Type LB, LH, LW, LBU, LHU (loads)
       7'b1100111: ;  // I Type JALR
