@@ -114,7 +114,9 @@ module idecode #(
       7'b0110011: begin
 
       end  // R Type ADD, SUB, XOR, OR, AND, SLT, etc.
-      7'b0010011: ;  // I Type ADDI, ORI, ANDI, SLTI, etc.
+      7'b0010011: begin
+
+      end  // I Type ADDI, ORI, ANDI, SLTI, etc.
       7'b0000011: ;  // I Type LB, LH, LW, LBU, LHU (loads)
       7'b1100111: ;  // I Type JALR
       7'b1110011: ;  // I Type ECALL, EBREAK, CSR ops
