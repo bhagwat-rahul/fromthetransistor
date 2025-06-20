@@ -166,8 +166,11 @@ module idecode #(
         is_branch_reg_next = 1'b0;
       end  // I Type LB, LH, LW, LBU, LHU (loads)
       7'b1100111: begin
-        is_branch_reg_next = 1'b0;
-        jump_reg_next      = 1'b1;
+        reg_write_enable_reg_next = 1'b1;
+        is_branch_reg_next        = 1'b0;
+        alu_op_reg_next           = ADD;
+        jump_reg_next             = 1'b1;
+        imm_reg_next              = {{(XLEN - 12) {instr[31]}}, instr[31:20]};
       end  // I Type JALR
       7'b1110011: begin
         is_branch_reg_next = 1'b0;
@@ -189,9 +192,12 @@ module idecode #(
       end  // U Type AUIPC
       7'b1101111: begin
         reg_write_enable_reg_next = 1'b1;
-        is_branch_reg_next        = 1'b0;
-        alu_op_reg_next           = ADD;
-        jump_reg_next             = 1'b1;
+        is_branch_reg_next = 1'b0;
+        alu_op_reg_next = ADD;
+        jump_reg_next = 1'b1;
+        imm_reg_next = {
+          {(XLEN - 21) {instr[31]}}, instr[31], instr[19:12], instr[20], instr[30:21], 1'b0
+        };
       end  // J Type JAL
     endcase
   end
