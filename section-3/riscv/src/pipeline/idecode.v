@@ -107,7 +107,7 @@ module idecode #(
     // Default control signals (safe defaults)
 
     imm_reg_next = {XLEN{1'b0}};
-    alu_op_reg_next = 4'd0;
+    alu_op_reg_next = NOP;
     reg_write_enable_reg_next = 1'b0;
     mem_read_reg_next = 1'b0;
     mem_write_reg_next = 1'b0;
