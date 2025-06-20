@@ -22,6 +22,7 @@ module uart_tx_tb ();
   always #5 clk = ~clk;
 
   initial begin
+    $monitor("Tx Pin: %b, state: %0d, time %0t", tx_pin, tx1.tx_state, $time);
     clk = 0;
     baud_tick = 0;
     reset = 1;
@@ -33,10 +34,10 @@ module uart_tx_tb ();
     wait (baud_tick) $display("Got baud");
     wait (tx_busy == 1);
     $display("Transmission started, tx_busy asserted");
-    $monitor("Tx Pin: %b at time %0t", tx_pin, $time);
     wait (tx_done == 1);
     $display("Data bits: %b (LSB first)", tx_data);
-    $finish;
+    send_request = 0;
+    #2000 $finish;
   end
 
   always_ff @(posedge clk or posedge reset) begin

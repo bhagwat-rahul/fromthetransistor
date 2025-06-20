@@ -100,7 +100,7 @@ module uart_tx #(
       DONE: begin
         next_tx_done  = 1;
         next_tx_busy  = 0;
-        next_tx_state = IDLE;
+        next_tx_state = fsm_e'((send_request == 0) ? IDLE : DONE);
         next_tx_pin   = 1;
       end
     endcase

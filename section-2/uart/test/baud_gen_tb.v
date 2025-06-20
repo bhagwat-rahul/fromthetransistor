@@ -14,7 +14,7 @@ module baud_gen_tb ();
     reset = 1;
     #50 reset = 0;
     $monitor("Time=%0t baud_tick=%b tick_16x=%b", $time, baud_tick, tick_16x);
-    #100000;
+    #700;
     $finish;
   end
 
