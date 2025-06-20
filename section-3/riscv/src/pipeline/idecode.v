@@ -123,9 +123,10 @@ module idecode #(
     funct7_reg_next = instr[31:25];
 
     case (instr[6:0])
-      default:    ;  // NOP or unknown do nothing
+      default: ;  // NOP or unknown do nothing
       7'b0110011: begin
         reg_write_enable_reg_next = 1'b1;
+        is_branch_reg_next        = 1'b0;
         case ({
           funct7_reg_next, funct3_reg_next
         })
@@ -139,35 +140,55 @@ module idecode #(
           10'b0100000_101: alu_op_reg_next = SRA;
           10'b0000000_010: alu_op_reg_next = SLT;
           10'b0000000_011: alu_op_reg_next = SLTU;
-          default:         alu_op_reg_next = AND;
+          default:         alu_op_reg_next = NOP;
         endcase
       end  // R Type ADD, SUB, XOR, OR, AND, SLT, etc.
       7'b0010011: begin
-
+        reg_write_enable_reg_next = 1'b1;
+        is_branch_reg_next        = 1'b0;
       end  // I Type ADDI, ORI, ANDI, SLTI, etc.
-      7'b0000011: ;  // I Type LB, LH, LW, LBU, LHU (loads)
-      7'b1100111: ;  // I Type JALR
-      7'b1110011: ;  // I Type ECALL, EBREAK, CSR ops
-      7'b0100011: ;  // S Type SB, SH, SW (stores)
-      7'b1100011: ;  // B Type BEQ, BNE, BLT, BGE, BLTU, BGEU
-      7'b0110111: ;  // U Type LUI
-      7'b0010111: ;  // U Type AUIPC
-      7'b1101111: ;  // J Type JAL
+      7'b0000011: begin
+        is_branch_reg_next = 1'b0;
+      end  // I Type LB, LH, LW, LBU, LHU (loads)
+      7'b1100111: begin
+        is_branch_reg_next = 1'b0;
+      end  // I Type JALR
+      7'b1110011: begin
+        is_branch_reg_next = 1'b0;
+      end  // I Type ECALL, EBREAK, CSR ops
+      7'b0100011: begin
+        is_branch_reg_next        = 1'b0;
+        reg_write_enable_reg_next = 1'b1;
+      end  // S Type SB, SH, SW (stores)
+      7'b1100011: begin
+        is_branch_reg_next = 1'b1;
+      end  // B Type BEQ, BNE, BLT, BGE, BLTU, BGEU
+      7'b0110111: begin
+        is_branch_reg_next        = 1'b0;
+        reg_write_enable_reg_next = 1'b1;
+      end  // U Type LUI
+      7'b0010111: begin
+        reg_write_enable_reg_next = 1'b1;
+        is_branch_reg_next        = 1'b0;
+      end  // U Type AUIPC
+      7'b1101111: begin
+        is_branch_reg_next = 1'b1;
+      end  // J Type JAL
     endcase
   end
 
-  assign opcode = opcode_reg;
-  assign rd = rd_reg;
-  assign rs1 = rs1_reg;
-  assign rs2 = rs2_reg;
-  assign funct3 = funct3_reg;
-  assign funct7 = funct7_reg;
-  assign imm = imm_reg;
-  assign alu_op = alu_op_reg;
+  assign opcode           = opcode_reg;
+  assign rd               = rd_reg;
+  assign rs1              = rs1_reg;
+  assign rs2              = rs2_reg;
+  assign funct3           = funct3_reg;
+  assign funct7           = funct7_reg;
+  assign imm              = imm_reg;
+  assign alu_op           = alu_op_reg;
   assign reg_write_enable = reg_write_enable_reg;
-  assign mem_read = mem_read_reg;
-  assign mem_write = mem_write_reg;
-  assign is_branch = is_branch_reg;
-  assign jump = jump_reg;
+  assign mem_read         = mem_read_reg;
+  assign mem_write        = mem_write_reg;
+  assign is_branch        = is_branch_reg;
+  assign jump             = jump_reg;
 
 endmodule
