@@ -130,6 +130,7 @@ module idecode #(
         case ({
           funct7_reg_next, funct3_reg_next
         })
+          default:         alu_op_reg_next = NOP;
           10'b0000000_000: alu_op_reg_next = ADD;
           10'b0100000_000: alu_op_reg_next = SUB;
           10'b0000000_111: alu_op_reg_next = AND;
@@ -140,12 +141,26 @@ module idecode #(
           10'b0100000_101: alu_op_reg_next = SRA;
           10'b0000000_010: alu_op_reg_next = SLT;
           10'b0000000_011: alu_op_reg_next = SLTU;
-          default:         alu_op_reg_next = NOP;
         endcase
       end  // R Type ADD, SUB, XOR, OR, AND, SLT, etc.
       7'b0010011: begin
         reg_write_enable_reg_next = 1'b1;
         is_branch_reg_next        = 1'b0;
+        imm_reg_next              = {{(XLEN - 12) {instr[31]}}, instr[31:20]};
+        case (funct3_reg_next)
+          default: alu_op_reg_next = NOP;
+          3'b000:  alu_op_reg_next = ADD;  // ADDI
+          3'b111:  alu_op_reg_next = AND;  // ANDI
+          3'b110:  alu_op_reg_next = OR;  // ORI
+          3'b100:  alu_op_reg_next = XOR;  // XORI
+          3'b010:  alu_op_reg_next = SLT;  // SLTI
+          3'b011:  alu_op_reg_next = SLTU;  // SLTIU
+          3'b001:  alu_op_reg_next = SLL;  // SLLI
+          3'b101: begin
+            if (instr[30] == 0) alu_op_reg_next = SRL;  // SRLI
+            else alu_op_reg_next = SRA;  // SRAI
+          end
+        endcase
       end  // I Type ADDI, ORI, ANDI, SLTI, etc.
       7'b0000011: begin
         is_branch_reg_next = 1'b0;
