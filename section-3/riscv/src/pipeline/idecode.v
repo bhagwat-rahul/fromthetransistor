@@ -161,12 +161,13 @@ module idecode #(
             else alu_op_reg_next = SRA;  // SRAI
           end
         endcase
-      end  // I Type ADDI, ORI, ANDI, SLTI, etc.
+      end  // I Type ADDI, ORI, ANDI, SLTI, etc. (alu-ops)
       7'b0000011: begin
         is_branch_reg_next = 1'b0;
       end  // I Type LB, LH, LW, LBU, LHU (loads)
       7'b1100111: begin
         is_branch_reg_next = 1'b0;
+        jump_reg_next      = 1'b1;
       end  // I Type JALR
       7'b1110011: begin
         is_branch_reg_next = 1'b0;
@@ -187,7 +188,10 @@ module idecode #(
         is_branch_reg_next        = 1'b0;
       end  // U Type AUIPC
       7'b1101111: begin
-        is_branch_reg_next = 1'b1;
+        reg_write_enable_reg_next = 1'b1;
+        is_branch_reg_next        = 1'b0;
+        alu_op_reg_next           = ADD;
+        jump_reg_next             = 1'b1;
       end  // J Type JAL
     endcase
   end
