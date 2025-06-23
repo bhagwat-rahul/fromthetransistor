@@ -22,6 +22,8 @@ module idecode #(
     output logic [     6:0] funct7,
     output logic [XLEN-1:0] imm,
     output logic [     3:0] alu_op,
+    output logic [     3:0] trap_cause,
+    output logic            trap,
     output logic            reg_write_enable,
     output logic            mem_read,
     output logic            mem_write,
@@ -51,6 +53,8 @@ module idecode #(
   logic [6:0] funct7_reg, funct7_reg_next;
   logic [XLEN-1:0] imm_reg, imm_reg_next;
   logic [3:0] alu_op_reg, alu_op_reg_next;
+  logic [3:0] trap_cause_reg, trap_cause_reg_next;
+  logic trap_reg, trap_reg_next;
   logic reg_write_enable_reg, reg_write_enable_reg_next;
   logic mem_read_reg, mem_read_reg_next;
   logic mem_write_reg, mem_write_reg_next;
@@ -174,6 +178,17 @@ module idecode #(
       end  // I Type JALR
       7'b1110011: begin
         is_branch_reg_next = 1'b0;
+        unique case (instr[31:20])  // funct12
+          12'h000: begin  // ECALL
+            trap_reg_next       = 1'b1;
+            trap_cause_reg_next = 4'd8;  // + offset for current mode
+          end
+          12'h001: begin  // EBREAK
+            trap_reg_next       = 1'b1;
+            trap_cause_reg_next = 4'd3;
+          end
+          default: ;  /* CSR instructions … */
+        endcase
       end  // I Type ECALL, EBREAK, CSR ops
       7'b0100011: begin
         is_branch_reg_next        = 1'b0;
