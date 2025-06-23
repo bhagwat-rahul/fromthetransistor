@@ -9,10 +9,10 @@ module idecode #(
     input logic            resetn,
     input logic            flush,
     input logic            stall,
-    input logic [XLEN-1:0] pc,
     input logic [    31:0] instr,
-    input logic [    31:0] regfile_rs1,
-    input logic [    31:0] regfile_rs2,
+    input logic [XLEN-1:0] pc,
+    input logic [XLEN-1:0] regfile_rs1,
+    input logic [XLEN-1:0] regfile_rs2,
 
     output logic [     6:0] opcode,
     output logic [     4:0] rd,
@@ -162,7 +162,6 @@ module idecode #(
         trap_reg_next = 1'b1;
         trap_cause_reg_next = 4'd2;  // Illegal instruction
       end
-      7'b0000000: ;  // NOP
       7'b0110011: begin
         reg_write_enable_reg_next = 1'b1;
         is_branch_reg_next        = 1'b0;
@@ -256,17 +255,17 @@ module idecode #(
             3'b101: begin  // CSRRWI - CSR Read/Write Immediate
               csr_read_reg_next = (rd_reg_next != 5'd0);
               csr_write_reg_next = 1'b1;
-              imm_reg_next = {{(XLEN - 5) {1'b0}}, rs1_reg_next};  // Zero-extend uimm[4:0]
+              imm_reg_next = {{(XLEN - 5) {1'b0}}, instr[19:15]};  // Zero-extend uimm[4:0]
             end
             3'b110: begin  // CSRRSI - CSR Read/Set Immediate
               csr_read_reg_next = 1'b1;
               csr_write_reg_next = (rs1_reg_next != 5'd0);  // Only write if uimm != 0
-              imm_reg_next = {{(XLEN - 5) {1'b0}}, rs1_reg_next};  // Zero-extend uimm[4:0]
+              imm_reg_next = {{(XLEN - 5) {1'b0}}, instr[19:15]};  // Zero-extend uimm[4:0]
             end
             3'b111: begin  // CSRRCI - CSR Read/Clear Immediate
               csr_read_reg_next = 1'b1;
               csr_write_reg_next = (rs1_reg_next != 5'd0);  // Only write if uimm != 0
-              imm_reg_next = {{(XLEN - 5) {1'b0}}, rs1_reg_next};  // Zero-extend uimm[4:0]
+              imm_reg_next = {{(XLEN - 5) {1'b0}}, instr[19:15]};  // Zero-extend uimm[4:0]
             end
             default: begin  // Illegal CSR instruction
               trap_reg_next = 1'b1;
