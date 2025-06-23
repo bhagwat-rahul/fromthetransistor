@@ -71,33 +71,45 @@ module idecode #(
 
   always_ff @(posedge clk or negedge resetn) begin
     if (resetn == 0) begin
-      opcode_reg <= 7'b0010011;  // NOP
-      rd_reg <= 0;
-      rs1_reg <= 5'd0;
-      rs2_reg <= 5'd0;
-      funct3_reg <= 3'd0;
-      funct7_reg <= 7'd0;
-      imm_reg <= {XLEN{1'b0}};
-      alu_op_reg <= NOP;
+      opcode_reg           <= 7'b0010011;  // NOP
+      rd_reg               <= 0;
+      rs1_reg              <= 5'd0;
+      rs2_reg              <= 5'd0;
+      funct3_reg           <= 3'd0;
+      funct7_reg           <= 7'd0;
+      imm_reg              <= {XLEN{1'b0}};
+      alu_op_reg           <= NOP;
       reg_write_enable_reg <= 0;
-      mem_read_reg <= 0;
-      mem_write_reg <= 0;
-      is_branch_reg <= 0;
-      jump_reg <= 0;
+      mem_read_reg         <= 0;
+      mem_write_reg        <= 0;
+      is_branch_reg        <= 0;
+      jump_reg             <= 0;
+      trap_cause_reg       <= 4'd0;
+      csr_addr_reg         <= 12'd0;
+      trap_reg             <= 0;
+      is_csr_reg           <= 0;
+      csr_read_reg         <= 0;
+      csr_write_reg        <= 0;
     end else if (flush) begin
-      opcode_reg <= 7'b0010011;  // NOP
-      rd_reg <= 0;
-      rs1_reg <= 5'd0;
-      rs2_reg <= 5'd0;
-      funct3_reg <= 3'd0;
-      funct7_reg <= 7'd0;
-      imm_reg <= {XLEN{1'b0}};
-      alu_op_reg <= 4'b0;
+      opcode_reg           <= 7'b0010011;  // NOP
+      rd_reg               <= 0;
+      rs1_reg              <= 5'd0;
+      rs2_reg              <= 5'd0;
+      funct3_reg           <= 3'd0;
+      funct7_reg           <= 7'd0;
+      imm_reg              <= {XLEN{1'b0}};
+      alu_op_reg           <= NOP;
       reg_write_enable_reg <= 0;
-      mem_read_reg <= 0;
-      mem_write_reg <= 0;
-      is_branch_reg <= 0;
-      jump_reg <= 0;
+      mem_read_reg         <= 0;
+      mem_write_reg        <= 0;
+      is_branch_reg        <= 0;
+      jump_reg             <= 0;
+      trap_cause_reg       <= 4'd0;
+      csr_addr_reg         <= 12'd0;
+      trap_reg             <= 0;
+      is_csr_reg           <= 0;
+      csr_read_reg         <= 0;
+      csr_write_reg        <= 0;
     end else if (!stall) begin
       opcode_reg           <= opcode_reg_next;
       rd_reg               <= rd_reg_next;
@@ -112,12 +124,17 @@ module idecode #(
       mem_write_reg        <= mem_write_reg_next;
       is_branch_reg        <= is_branch_reg_next;
       jump_reg             <= jump_reg_next;
+      trap_cause_reg       <= trap_cause_reg_next;
+      csr_addr_reg         <= csr_addr_reg_next;
+      trap_reg             <= trap_reg_next;
+      is_csr_reg           <= is_csr_reg_next;
+      csr_read_reg         <= csr_read_reg_next;
+      csr_write_reg        <= csr_write_reg_next;
     end
   end
 
   always_comb begin
     // Default control signals (safe defaults)
-
     imm_reg_next              = {XLEN{1'b0}};
     alu_op_reg_next           = NOP;
     reg_write_enable_reg_next = 1'b0;
@@ -141,7 +158,11 @@ module idecode #(
     funct7_reg_next           = instr[31:25];
 
     case (instr[6:0])
-      default: ;  // NOP or unknown do nothing
+      default: begin
+        trap_reg_next = 1'b1;
+        trap_cause_reg_next = 4'd2;  // Illegal instruction
+      end
+      7'b0000000: ;  // NOP
       7'b0110011: begin
         reg_write_enable_reg_next = 1'b1;
         is_branch_reg_next        = 1'b0;
@@ -256,18 +277,27 @@ module idecode #(
       end  // I Type ECALL, EBREAK, CSR ops
       7'b0100011: begin
         is_branch_reg_next        = 1'b0;
-        reg_write_enable_reg_next = 1'b1;
+        reg_write_enable_reg_next = 1'b0;
+        mem_write_reg_next        = 1'b1;
+        alu_op_reg_next           = ADD;
+        imm_reg_next              = {{(XLEN - 12) {instr[31]}}, instr[31:25], instr[11:7]};
       end  // S Type SB, SH, SW (stores)
       7'b1100011: begin
         is_branch_reg_next = 1'b1;
+        imm_reg_next = {
+          {(XLEN - 13) {instr[31]}}, instr[31], instr[7], instr[30:25], instr[11:8], 1'b0
+        };
       end  // B Type BEQ, BNE, BLT, BGE, BLTU, BGEU
       7'b0110111: begin
         is_branch_reg_next        = 1'b0;
         reg_write_enable_reg_next = 1'b1;
+        imm_reg_next              = {{(XLEN - 32) {instr[31]}}, instr[31:12], 12'b0};
       end  // U Type LUI
       7'b0010111: begin
         reg_write_enable_reg_next = 1'b1;
         is_branch_reg_next        = 1'b0;
+        alu_op_reg_next           = ADD;
+        imm_reg_next              = {{(XLEN - 32) {instr[31]}}, instr[31:12], 12'b0};
       end  // U Type AUIPC
       7'b1101111: begin
         reg_write_enable_reg_next = 1'b1;
