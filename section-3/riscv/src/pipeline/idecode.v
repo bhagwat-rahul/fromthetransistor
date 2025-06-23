@@ -23,6 +23,10 @@ module idecode #(
     output logic [XLEN-1:0] imm,
     output logic [     3:0] alu_op,
     output logic [     3:0] trap_cause,
+    output logic [    11:0] csr_addr,
+    output logic            is_csr,
+    output logic            csr_read,
+    output logic            csr_write,
     output logic            trap,
     output logic            reg_write_enable,
     output logic            mem_read,
@@ -54,12 +58,16 @@ module idecode #(
   logic [XLEN-1:0] imm_reg, imm_reg_next;
   logic [3:0] alu_op_reg, alu_op_reg_next;
   logic [3:0] trap_cause_reg, trap_cause_reg_next;
+  logic [11:0] csr_addr_reg, csr_addr_reg_next;
   logic trap_reg, trap_reg_next;
   logic reg_write_enable_reg, reg_write_enable_reg_next;
   logic mem_read_reg, mem_read_reg_next;
   logic mem_write_reg, mem_write_reg_next;
   logic is_branch_reg, is_branch_reg_next;
   logic jump_reg, jump_reg_next;
+  logic is_csr_reg, is_csr_reg_next;
+  logic csr_read_reg, csr_read_reg_next;
+  logic csr_write_reg, csr_write_reg_next;
 
   always_ff @(posedge clk or negedge resetn) begin
     if (resetn == 0) begin
@@ -110,21 +118,27 @@ module idecode #(
   always_comb begin
     // Default control signals (safe defaults)
 
-    imm_reg_next = {XLEN{1'b0}};
-    alu_op_reg_next = NOP;
+    imm_reg_next              = {XLEN{1'b0}};
+    alu_op_reg_next           = NOP;
     reg_write_enable_reg_next = 1'b0;
-    mem_read_reg_next = 1'b0;
-    mem_write_reg_next = 1'b0;
-    is_branch_reg_next = 1'b0;
-    jump_reg_next = 1'b0;
+    mem_read_reg_next         = 1'b0;
+    mem_write_reg_next        = 1'b0;
+    is_branch_reg_next        = 1'b0;
+    jump_reg_next             = 1'b0;
+    is_csr_reg_next           = 1'b0;
+    csr_addr_reg_next         = 12'd0;
+    csr_write_reg_next        = 1'b0;
+    csr_read_reg_next         = 1'b0;
+    trap_reg_next             = 1'b0;
+    trap_cause_reg_next       = 4'd0;
 
     // Extract from instruction
-    opcode_reg_next = instr[6:0];
-    rd_reg_next = instr[11:7];
-    rs1_reg_next = instr[19:15];
-    rs2_reg_next = instr[24:20];
-    funct3_reg_next = instr[14:12];
-    funct7_reg_next = instr[31:25];
+    opcode_reg_next           = instr[6:0];
+    rd_reg_next               = instr[11:7];
+    rs1_reg_next              = instr[19:15];
+    rs2_reg_next              = instr[24:20];
+    funct3_reg_next           = instr[14:12];
+    funct7_reg_next           = instr[31:25];
 
     case (instr[6:0])
       default: ;  // NOP or unknown do nothing
@@ -167,7 +181,11 @@ module idecode #(
         endcase
       end  // I Type ADDI, ORI, ANDI, SLTI, etc. (alu-ops)
       7'b0000011: begin
+        mem_read_reg_next = 1'b1;
         is_branch_reg_next = 1'b0;
+        alu_op_reg_next = ADD;
+        imm_reg_next = {{(XLEN - 12) {instr[31]}}, instr[31:20]};
+        reg_write_enable_reg_next = 1'b1;
       end  // I Type LB, LH, LW, LBU, LHU (loads)
       7'b1100111: begin
         reg_write_enable_reg_next = 1'b1;
@@ -178,17 +196,63 @@ module idecode #(
       end  // I Type JALR
       7'b1110011: begin
         is_branch_reg_next = 1'b0;
-        unique case (instr[31:20])  // funct12
-          12'h000: begin  // ECALL
-            trap_reg_next       = 1'b1;
-            trap_cause_reg_next = 4'd8;  // + offset for current mode
-          end
-          12'h001: begin  // EBREAK
-            trap_reg_next       = 1'b1;
-            trap_cause_reg_next = 4'd3;
-          end
-          default: ;  /* CSR instructions … */
-        endcase
+        if (instr[14:12] == 3'b000) begin  // ECALL/EBREAK (funct3 = 000)
+          unique case (instr[31:20])  // funct12
+            12'h000: begin  // ECALL
+              trap_reg_next       = 1'b1;
+              trap_cause_reg_next = 4'd8;  // + offset for current mode
+            end
+            12'h001: begin  // EBREAK
+              trap_reg_next       = 1'b1;
+              trap_cause_reg_next = 4'd3;  // Breakpoint
+            end
+            default: begin
+              trap_reg_next       = 1'b1;
+              trap_cause_reg_next = 4'd2;  // Illegal instruction
+            end
+          endcase
+        end else begin  // CSR instructions
+          is_csr_reg_next = 1;
+          csr_addr_reg_next = instr[31:20];  // CSR address
+          reg_write_enable_reg_next = (rd_reg_next != 5'd0);  // Only write to rd if rd != x0
+
+          case (funct3_reg_next)
+            3'b001: begin  // CSRRW - CSR Read/Write
+              csr_read_reg_next = (rd_reg_next != 5'd0);
+              csr_write_reg_next = 1'b1;
+              imm_reg_next = {XLEN{1'b0}};  // Use rs1 value, not immediate
+            end
+            3'b010: begin  // CSRRS - CSR Read/Set
+              csr_read_reg_next = 1'b1;
+              csr_write_reg_next = (rs1_reg_next != 5'd0);  // Only write if rs1 != x0
+              imm_reg_next = {XLEN{1'b0}};  // Use rs1 value
+            end
+            3'b011: begin  // CSRRC - CSR Read/Clear
+              csr_read_reg_next = 1'b1;
+              csr_write_reg_next = (rs1_reg_next != 5'd0);  // Only write if rs1 != x0
+              imm_reg_next = {XLEN{1'b0}};  // Use rs1 value
+            end
+            3'b101: begin  // CSRRWI - CSR Read/Write Immediate
+              csr_read_reg_next = (rd_reg_next != 5'd0);
+              csr_write_reg_next = 1'b1;
+              imm_reg_next = {{(XLEN - 5) {1'b0}}, rs1_reg_next};  // Zero-extend uimm[4:0]
+            end
+            3'b110: begin  // CSRRSI - CSR Read/Set Immediate
+              csr_read_reg_next = 1'b1;
+              csr_write_reg_next = (rs1_reg_next != 5'd0);  // Only write if uimm != 0
+              imm_reg_next = {{(XLEN - 5) {1'b0}}, rs1_reg_next};  // Zero-extend uimm[4:0]
+            end
+            3'b111: begin  // CSRRCI - CSR Read/Clear Immediate
+              csr_read_reg_next = 1'b1;
+              csr_write_reg_next = (rs1_reg_next != 5'd0);  // Only write if uimm != 0
+              imm_reg_next = {{(XLEN - 5) {1'b0}}, rs1_reg_next};  // Zero-extend uimm[4:0]
+            end
+            default: begin  // Illegal CSR instruction
+              trap_reg_next = 1'b1;
+              trap_cause_reg_next = 4'd2;  // Illegal instruction
+            end
+          endcase
+        end
       end  // I Type ECALL, EBREAK, CSR ops
       7'b0100011: begin
         is_branch_reg_next        = 1'b0;
@@ -230,5 +294,11 @@ module idecode #(
   assign mem_write        = mem_write_reg;
   assign is_branch        = is_branch_reg;
   assign jump             = jump_reg;
+  assign trap             = trap_reg;
+  assign trap_cause       = trap_cause_reg;
+  assign is_csr           = is_csr_reg;
+  assign csr_addr         = csr_addr_reg;
+  assign csr_write        = csr_write_reg;
+  assign csr_read         = csr_read_reg;
 
 endmodule
