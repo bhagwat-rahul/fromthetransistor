@@ -85,12 +85,12 @@ module idecode_tb;
   end
 
   // Test result checking task
-  task check_result(input string test_name, input logic expected_reg_write,
-                    input logic expected_mem_read, input logic expected_mem_write,
-                    input logic expected_is_branch, input logic expected_jump,
-                    input logic expected_trap, input logic [3:0] expected_alu_op,
-                    input logic [XLEN-1:0] expected_imm = 64'd0,
-                    input logic [XLEN-1:0] imm_mask = 64'hFFFFFFFFFFFFFFFF);
+  task automatic check_result(input string test_name, input logic expected_reg_write,
+                              input logic expected_mem_read, input logic expected_mem_write,
+                              input logic expected_is_branch, input logic expected_jump,
+                              input logic expected_trap, input logic [3:0] expected_alu_op,
+                              input logic [XLEN-1:0] expected_imm = 64'd0,
+                              input logic [XLEN-1:0] imm_mask = 64'hFFFFFFFFFFFFFFFF);
     test_count++;
 
     if (reg_write_enable === expected_reg_write &&
@@ -118,7 +118,7 @@ module idecode_tb;
   endtask
 
   // Helper task to wait for clock edge and allow combinational logic to settle
-  task tick();
+  task automatic tick();
     @(posedge clk);
     #1;  // Small delay to allow combinational logic to settle
   endtask
