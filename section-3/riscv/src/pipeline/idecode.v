@@ -259,12 +259,12 @@ module idecode #(
             end
             3'b110: begin  // CSRRSI - CSR Read/Set Immediate
               csr_read_reg_next = 1'b1;
-              csr_write_reg_next = (rs1_reg_next != 5'd0);  // Only write if uimm != 0
+              csr_write_reg_next = (instr[19:15] != 5'd0 != 5'd0);  // Only write if uimm != 0
               imm_reg_next = {{(XLEN - 5) {1'b0}}, instr[19:15]};  // Zero-extend uimm[4:0]
             end
             3'b111: begin  // CSRRCI - CSR Read/Clear Immediate
               csr_read_reg_next = 1'b1;
-              csr_write_reg_next = (rs1_reg_next != 5'd0);  // Only write if uimm != 0
+              csr_write_reg_next = (instr[19:15] != 5'd0);  // Only write if uimm != 0
               imm_reg_next = {{(XLEN - 5) {1'b0}}, instr[19:15]};  // Zero-extend uimm[4:0]
             end
             default: begin  // Illegal CSR instruction
