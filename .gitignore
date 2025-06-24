@@ -11,6 +11,7 @@
 # Compiler artifacts
 *.hi
 *.o
+*.vcd
 # Don't ignore .gitignore itself
 !.gitignore
 # Ignore foll dirs their contents
