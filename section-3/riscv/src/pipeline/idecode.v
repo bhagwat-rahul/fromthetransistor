@@ -21,6 +21,7 @@ module idecode #(
     output logic [     2:0] funct3,
     output logic [     6:0] funct7,
     output logic [XLEN-1:0] imm,
+    output logic [XLEN-1:0] pc_out,
     output logic [     3:0] alu_op,
     output logic [     3:0] trap_cause,
     output logic [    11:0] csr_addr,
@@ -32,7 +33,8 @@ module idecode #(
     output logic            mem_read,
     output logic            mem_write,
     output logic            is_branch,
-    output logic            jump
+    output logic            jump,
+    output logic            use_pc
 );
 
   localparam logic [3:0]
@@ -56,6 +58,7 @@ module idecode #(
   logic [2:0] funct3_reg, funct3_reg_next;
   logic [6:0] funct7_reg, funct7_reg_next;
   logic [XLEN-1:0] imm_reg, imm_reg_next;
+  logic [XLEN-1:0] pc_out_reg, pc_out_reg_next;
   logic [3:0] alu_op_reg, alu_op_reg_next;
   logic [3:0] trap_cause_reg, trap_cause_reg_next;
   logic [11:0] csr_addr_reg, csr_addr_reg_next;
@@ -68,6 +71,7 @@ module idecode #(
   logic is_csr_reg, is_csr_reg_next;
   logic csr_read_reg, csr_read_reg_next;
   logic csr_write_reg, csr_write_reg_next;
+  logic use_pc_reg, use_pc_reg_next;
 
   always_ff @(posedge clk or negedge resetn) begin
     if (resetn == 0) begin
@@ -90,6 +94,8 @@ module idecode #(
       is_csr_reg           <= 0;
       csr_read_reg         <= 0;
       csr_write_reg        <= 0;
+      use_pc_reg           <= 0;
+      pc_out_reg           <= {XLEN{1'b0}};
     end else if (flush) begin
       opcode_reg           <= 7'b0010011;  // NOP
       rd_reg               <= 0;
@@ -110,6 +116,8 @@ module idecode #(
       is_csr_reg           <= 0;
       csr_read_reg         <= 0;
       csr_write_reg        <= 0;
+      use_pc_reg           <= 0;
+      pc_out_reg           <= {XLEN{1'b0}};
     end else if (!stall) begin
       opcode_reg           <= opcode_reg_next;
       rd_reg               <= rd_reg_next;
@@ -130,6 +138,8 @@ module idecode #(
       is_csr_reg           <= is_csr_reg_next;
       csr_read_reg         <= csr_read_reg_next;
       csr_write_reg        <= csr_write_reg_next;
+      use_pc_reg           <= use_pc_reg_next;
+      pc_out_reg           <= pc_out_reg_next;
     end
   end
 
@@ -148,6 +158,8 @@ module idecode #(
     csr_read_reg_next         = 1'b0;
     trap_reg_next             = 1'b0;
     trap_cause_reg_next       = 4'd0;
+    use_pc_reg_next           = 1'b0;
+    pc_out_reg_next           = pc;
 
     // Extract from instruction
     opcode_reg_next           = instr[6:0];
@@ -259,7 +271,7 @@ module idecode #(
             end
             3'b110: begin  // CSRRSI - CSR Read/Set Immediate
               csr_read_reg_next = 1'b1;
-              csr_write_reg_next = (instr[19:15] != 5'd0 != 5'd0);  // Only write if uimm != 0
+              csr_write_reg_next = (instr[19:15] != 5'd0);  // Only write if uimm != 0
               imm_reg_next = {{(XLEN - 5) {1'b0}}, instr[19:15]};  // Zero-extend uimm[4:0]
             end
             3'b111: begin  // CSRRCI - CSR Read/Clear Immediate
@@ -296,6 +308,8 @@ module idecode #(
         reg_write_enable_reg_next = 1'b1;
         is_branch_reg_next        = 1'b0;
         alu_op_reg_next           = ADD;
+        use_pc_reg_next           = 1;
+        pc_out_reg_next           = pc;
         imm_reg_next              = {{(XLEN - 32) {instr[31]}}, instr[31:12], 12'b0};
       end  // U Type AUIPC
       7'b1101111: begin
@@ -329,5 +343,7 @@ module idecode #(
   assign csr_addr         = csr_addr_reg;
   assign csr_write        = csr_write_reg;
   assign csr_read         = csr_read_reg;
+  assign pc_out           = pc_out_reg;
+  assign use_pc           = use_pc_reg;
 
 endmodule
