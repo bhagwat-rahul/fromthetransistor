@@ -7,13 +7,13 @@ def main():
 
 # R (register-register ALU instructions), I (ALU immediate instructions, load instructions), S (store instructions, comparison and branch instructions), B (branch instructions), U (jump instructions, jump and link instructions), and J (jump instructions)
 
-R_instr = []
-I_instr = []
-S_instr = []
-B_instr = []
+R_instr  = []
+I_instr  = []
+S_instr  = []
+B_instr  = []
 SB_instr = []
-U_instr = []
-J_instr = []
+U_instr  = []
+J_instr  = []
 UJ_instr = []
 
 def encode_instruction(instruction: str):
