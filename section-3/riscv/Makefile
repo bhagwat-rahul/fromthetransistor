@@ -1,23 +1,22 @@
 # --- riscv/Makefile ---
 
 # Toolchain
-IVERILOG = iverilog
-VVP = vvp
-VFLAGS = -Wall -g2012
+VERILATOR = verilator
+VFLAGS = --binary
 
 # Paths
 SRC_DIR  = src
 PIPELINE_DIR = src/pipeline
 TEST_DIR = test
-BUILD_DIR = build
+BUILD_DIR = obj_dir
 
 # Output names
-OUT_RISCV     = $(BUILD_DIR)/riscv
-OUT_EXEC      = $(BUILD_DIR)/exec
-OUT_IDECODE   = $(BUILD_DIR)/idecode
-OUT_IFETCH    = $(BUILD_DIR)/ifetch
-OUT_MEMACC    = $(BUILD_DIR)/memacc
-OUT_WRITEBACK = $(BUILD_DIR)/writeback
+OUT_RISCV     = $(BUILD_DIR)/Vriscv_tb
+OUT_EXEC      = $(BUILD_DIR)/Vexec_tb
+OUT_IDECODE   = $(BUILD_DIR)/Videcode_tb
+OUT_IFETCH    = $(BUILD_DIR)/Vifetch_tb
+OUT_MEMACC    = $(BUILD_DIR)/Vmemacc_tb
+OUT_WRITEBACK = $(BUILD_DIR)/Vwriteback_tb
 
 # Sources
 SRC_RISCV     = $(SRC_DIR)/riscv.v
@@ -45,28 +44,28 @@ all: riscv
 # --- Test Targets ---
 
 riscv: $(BUILD_DIR)
-	$(IVERILOG) $(VFLAGS) -o $(OUT_RISCV) $(SRC_RISCV) $(TB_RISCV)
-	$(VVP) $(OUT_RISCV)
+	$(VERILATOR) $(VFLAGS) $(TB_RISCV)  $(SRC_RISCV)
+	./$(OUT_RISCV)
 
 exec: $(BUILD_DIR)
-	$(IVERILOG) $(VFLAGS) -o $(OUT_EXEC) $(SRC_EXEC) $(TB_EXEC)
-	$(VVP) $(OUT_EXEC)
+	$(VERILATOR) $(VFLAGS)  $(TB_EXEC) $(SRC_EXEC)
+	./$(OUT_EXEC)
 
 idecode: $(BUILD_DIR)
-	$(IVERILOG) $(VFLAGS) -o $(OUT_IDECODE) $(SRC_IDECODE) $(TB_IDECODE)
-	$(VVP) $(OUT_IDECODE)
+	$(VERILATOR) $(VFLAGS)  $(TB_IDECODE) $(SRC_IDECODE)
+	./$(OUT_IDECODE)
 
 ifetch: $(BUILD_DIR)
-	$(IVERILOG) $(VFLAGS) -o $(OUT_IFETCH) $(SRC_IFETCH) $(TB_IFETCH)
-	$(VVP) $(OUT_IFETCH)
+	$(VERILATOR) $(VFLAGS)  $(TB_IFETCH) $(SRC_IFETCH)
+	./$(OUT_IFETCH)
 
 memacc: $(BUILD_DIR)
-	$(IVERILOG) $(VFLAGS) -o $(OUT_MEMACC) $(SRC_MEMACC) $(TB_MEMACC)
-	$(VVP) $(OUT_MEMACC)
+	$(VERILATOR) $(VFLAGS) $(TB_MEMACC) $(SRC_MEMACC)
+	./$(OUT_MEMACC)
 
 writeback: $(BUILD_DIR)
-	$(IVERILOG) $(VFLAGS) -o $(OUT_WRITEBACK) $(SRC_WRITEBACK) $(TB_WRITEBACK)
-	$(VVP) $(OUT_WRITEBACK)
+	$(VERILATOR) $(VFLAGS) $(TB_WRITEBACK) $(SRC_WRITEBACK)
+	./$(OUT_WRITEBACK)
 
 # --- Cleanup ---
 clean:
