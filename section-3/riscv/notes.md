@@ -10,14 +10,22 @@ RISC-V has been designed to support a variety of things:-
 # Some terminology
 
 a *core* is defined as anything containing it's own ifetch unit.
+
 each core could support multiple *harts* (hardware threads) through multi threading.
+
 *coprocessor* is anything attached to a core sequenced w riscv ins streams but can have additional state, extensions etc.
+
 *accelerator* is non programmable fixed function unit w specialised exclusions
+
+# behavior
 
 Behavior of riscv programs depends on eei (exec env interface):-
 defines no of harts, init state of harts, priv modes, what is impl in sw and what in hw
 
 *bare metal* is where harts are directly in hw and instr's have access to direct addr space. an exec env beginning on power on reset.
+
 *risc v os* systems to provide multiple user level exec env's multiplexing user-level harts onto physical threads and controlling acc via virt memory.
-*risc v hypervisors* multiple supervisor level exec envs for guest os'Some
+
+*risc v hypervisors* multiple supervisor level exec envs for guest os's
+
 *emulators* emulate hart on underlying system.
