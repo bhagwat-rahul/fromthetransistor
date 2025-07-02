@@ -40,3 +40,22 @@ base sets represent signed ints w 2's complements representation.
 
 rv32i has 40 instructions, and can emulate any extension except A (additional hw needed for atomicity)
 (also if using machine-mode privileged arch you need the 6 csr instructions)
+
+fence instr will help in telling the cache to load / not load certain things (to prevent illegal mem accs)
+
+XLEN is current bit width ILEN is max bitwidth
+IALIGN is what bit widths instructions are aligned at
+16 bits is halfword, 32 word, 64 double word and 128 quad word
+
+a hart has single byte addressable space of 2^xlen-1 bytes
+risc v is primarily little endian but has big end support
+expetion is anything unusual interrupt is anything causing a transfer of control in a hart.
+in rv32i you have 32 regs with x0 hardwired to 0 + a program counter.
+std calling convention dictates x1 to hold ret addr for a call and x5 as alt link reg.
+x2 is stack pointer. don't have to be these vals but a lot of sw performs better if so.
+
+except for csr (control status regs) all immediate vals are always sign extended.
+sign exists in leftmost bit to keep things simple for hw (b 32 in 32 b reg)
+
+any encoding w ilen bits  = 0 | 1 is illegal so an aligned area cant be all 1s / 0s.
+for std instructions sign bit for imm's always in bit 31 for alignment.
