@@ -29,3 +29,14 @@ defines no of harts, init state of harts, priv modes, what is impl in sw and wha
 *risc v hypervisors* multiple supervisor level exec envs for guest os's
 
 *emulators* emulate hart on underlying system.
+
+4 base isa's technically riscv is a family of isa's:-
+1. RV32I - 32 bit int
+2. RV64I - 64 bit int
+3. RV32E - subset of rv32I (half amt of regs, for microcontrollers)
+4. RV64E - subset of rv64I (half amt of regs, for microcontrollers)
+if needed new rv128i can be made for larger addr space
+base sets represent signed ints w 2's complements representation.
+
+rv32i has 40 instructions, and can emulate any extension except A (additional hw needed for atomicity)
+(also if using machine-mode privileged arch you need the 6 csr instructions)
