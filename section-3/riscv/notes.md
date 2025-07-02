@@ -19,3 +19,5 @@ defines no of harts, init state of harts, priv modes, what is impl in sw and wha
 
 *bare metal* is where harts are directly in hw and instr's have access to direct addr space. an exec env beginning on power on reset.
 *risc v os* systems to provide multiple user level exec env's multiplexing user-level harts onto physical threads and controlling acc via virt memory.
+*risc v hypervisors* multiple supervisor level exec envs for guest os'Some
+*emulators* emulate hart on underlying system.
