@@ -2,7 +2,7 @@
 
 # Toolchain
 VERILATOR = verilator
-VFLAGS = --binary
+VFLAGS = --binary --trace
 
 # Paths
 SRC_DIR  = src

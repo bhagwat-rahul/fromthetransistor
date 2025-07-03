@@ -304,7 +304,7 @@ module idecode_tb;
 
   // Optional: Dump waveforms
   initial begin
-    $dumpfile("build/idecode_tb.vcd");
+    $dumpfile("obj_dir/idecode_tb.vcd");
     $dumpvars(0, idecode_tb);
   end
 
