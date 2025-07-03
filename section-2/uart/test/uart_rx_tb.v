@@ -75,12 +75,9 @@ module uart_rx_tb ();
     int count;
     begin
       count = 0;
-      forever begin
+      while (count < num_ticks) begin
         @(posedge clk);
-        if (tick_16x) begin
-          count++;
-          if (count == num_ticks) break;
-        end
+        if (tick_16x) count++;
       end
     end
   endtask
