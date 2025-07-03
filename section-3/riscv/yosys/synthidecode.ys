@@ -1,0 +1,3 @@
+read_verilog -sv src/pipeline/idecode.v
+synth
+show

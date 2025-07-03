@@ -1,0 +1,4 @@
+read_verilog -sv src/baud_gen.v
+synth
+select
+show

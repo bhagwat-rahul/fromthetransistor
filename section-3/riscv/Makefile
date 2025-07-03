@@ -67,6 +67,12 @@ writeback: $(BUILD_DIR)
 	$(VERILATOR) $(VFLAGS) $(TB_WRITEBACK) $(SRC_WRITEBACK)
 	./$(OUT_WRITEBACK)
 
+show_idecode:
+	yosys yosys/synthidecode.ys
+
+show_ifetch:
+	yosys yosys/syntifetch.ys
+
 # --- Cleanup ---
 clean:
 	rm -rf $(BUILD_DIR)

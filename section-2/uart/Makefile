@@ -53,6 +53,18 @@ uart: $(BUILD_DIR)
 	$(IVERILOG) $(VFLAGS) -o $(OUT_UART) $(SRC_UART) $(TB_UART)
 	$(VVP) $(OUT_UART)
 
+show_uart:
+	yosys yosys/synthuart.ys
+
+show_uart_tx:
+	yosys yosys/synthuart_tx.ys
+
+show_uart_rx:
+	yosys yosys/synthuart_rx.ys
+
+show_baud_gen:
+	yosys yosys/synthbaudgen.ys
+
 # --- Cleanup ---
 clean:
 	rm -rf $(BUILD_DIR)

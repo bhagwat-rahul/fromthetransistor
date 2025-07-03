@@ -1,0 +1,3 @@
+read_verilog -sv led.v
+synth
+show
