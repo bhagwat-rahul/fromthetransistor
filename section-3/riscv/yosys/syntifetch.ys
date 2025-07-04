@@ -1,3 +1,0 @@
-read_verilog -sv src/pipeline/ifetch.v
-synth
-show

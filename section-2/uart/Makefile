@@ -54,16 +54,16 @@ uart: $(BUILD_DIR)
 	$(VVP) $(OUT_UART)
 
 show_uart:
-	yosys yosys/synthuart.ys
+	yosys -p "read_verilog -sv src/uart.v src/uart_rx.v src/uart_tx.v src/baud_gen.v; synth -top uart; select uart; show"
 
-show_uart_tx:
-	yosys yosys/synthuart_tx.ys
+show_tx:
+	yosys -p "read_verilog -sv src/uart_tx.v; synth -top uart_tx; show"
 
-show_uart_rx:
-	yosys yosys/synthuart_rx.ys
+show_rx:
+	yosys -p "read_verilog -sv src/uart_rx.v; synth -top uart_rx; show"
 
-show_baud_gen:
-	yosys yosys/synthbaudgen.ys
+show_baud:
+	yosys -p "read_verilog -sv src/baud_gen.v; synth -top baud_gen; show"
 
 # --- Cleanup ---
 clean:

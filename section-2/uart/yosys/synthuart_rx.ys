@@ -1,4 +1,0 @@
-read_verilog -sv src/uart_rx.v
-synth
-select
-show

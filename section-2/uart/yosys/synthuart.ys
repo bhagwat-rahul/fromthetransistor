@@ -1,4 +1,0 @@
-read_verilog -sv src/uart.v src/uart_rx.v src/uart_tx.v src/baud_gen.v
-synth -top uart
-select uart
-show

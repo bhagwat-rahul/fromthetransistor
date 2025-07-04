@@ -68,10 +68,10 @@ writeback: $(BUILD_DIR)
 	./$(OUT_WRITEBACK)
 
 show_idecode:
-	yosys yosys/synthidecode.ys
+	yosys -p "read_verilog -sv src/pipeline/idecode.v ; synth ; show"
 
 show_ifetch:
-	yosys yosys/syntifetch.ys
+	yosys -p "read_verilog -sv src/pipeline/ifetch.v ; synth ; show"
 
 # --- Cleanup ---
 clean:
