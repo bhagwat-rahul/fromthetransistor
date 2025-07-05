@@ -78,13 +78,8 @@ module idecode_tb;
       .use_pc(use_pc)
   );
 
-  // Clock generation
-  initial begin
-    clk = 0;
-    forever #5 clk = ~clk;
-  end
+  always #5 clk = ~clk;
 
-  // Test result checking task
   task automatic check_result(input string test_name, input logic expected_reg_write,
                               input logic expected_mem_read, input logic expected_mem_write,
                               input logic expected_is_branch, input logic expected_jump,
@@ -105,22 +100,16 @@ module idecode_tb;
       pass_count++;
     end else begin
       $display("FAIL: %s", test_name);
-      $display("  Expected: reg_wr=%b, mem_r=%b, mem_w=%b, branch=%b, jump=%b, trap=%b, alu_op=%b",
-               expected_reg_write, expected_mem_read, expected_mem_write, expected_is_branch,
-               expected_jump, expected_trap, expected_alu_op);
-      $display("  Got:      reg_wr=%b, mem_r=%b, mem_w=%b, branch=%b, jump=%b, trap=%b, alu_op=%b",
-               reg_write_enable, mem_read, mem_write, is_branch, jump, trap, alu_op);
       if (imm_mask !== 64'd0) begin
         $display("  Expected imm: %h, Got: %h (Mask: %h)", expected_imm, imm, imm_mask);
       end
       fail_count++;
     end
-  endtask
-
-  // Helper task to wait for clock edge and allow combinational logic to settle
-  task automatic tick();
-    @(posedge clk);
-    #1;  // Small delay to allow combinational logic to settle
+    $display("  Expected: reg_wr=%b, mem_r=%b, mem_w=%b, branch=%b, jump=%b, trap=%b, alu_op=%b",
+             expected_reg_write, expected_mem_read, expected_mem_write, expected_is_branch,
+             expected_jump, expected_trap, expected_alu_op);
+    $display("  Got:      reg_wr=%b, mem_r=%b, mem_w=%b, branch=%b, jump=%b, trap=%b, alu_op=%b",
+             reg_write_enable, mem_read, mem_write, is_branch, jump, trap, alu_op);
   endtask
 
   // Test stimulus
@@ -139,7 +128,7 @@ module idecode_tb;
     // Reset sequence
     repeat (3) @(posedge clk);
     resetn = 1;
-    tick();
+    @(posedge clk);
 
     // Test 1: R-type instructions
     $display("\n=== Testing R-type Instructions ===");
@@ -147,17 +136,17 @@ module idecode_tb;
     // ADD x1, x2, x3
     instr = 32'b0000000_00011_00010_000_00001_0110011;
     pc = 64'h1000;
-    tick();
+    @(posedge clk);
     check_result("ADD", 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0001);
 
     // SUB x4, x5, x6
     instr = 32'b0100000_00110_00101_000_00100_0110011;
-    tick();
+    @(posedge clk);
     check_result("SUB", 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0010);
 
     // XOR x7, x8, x9
     instr = 32'b0000000_01001_01000_100_00111_0110011;
-    tick();
+    @(posedge clk);
     check_result("XOR", 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0101);
 
     // Test 2: I-type ALU instructions
@@ -165,12 +154,12 @@ module idecode_tb;
 
     // ADDI x1, x2, 100
     instr = 32'b000001100100_00010_000_00001_0010011;
-    tick();
+    @(posedge clk);
     check_result("ADDI", 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0001, 64'h64);
 
     // XORI x3, x4, -1
     instr = 32'b111111111111_00100_100_00011_0010011;
-    tick();
+    @(posedge clk);
     check_result("XORI", 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0101, 64'hFFFFFFFFFFFFFFFF);
 
     // Test 3: Load instructions
@@ -178,7 +167,7 @@ module idecode_tb;
 
     // LW x1, 8(x2)
     instr = 32'b000000001000_00010_010_00001_0000011;
-    tick();
+    @(posedge clk);
     check_result("LW", 1'b1, 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0001, 64'h8);
 
     // Test 4: Store instructions
@@ -186,7 +175,7 @@ module idecode_tb;
 
     // SW x3, 12(x4)
     instr = 32'b0000000_00011_00100_010_01100_0100011;
-    tick();
+    @(posedge clk);
     check_result("SW", 1'b0, 1'b0, 1'b1, 1'b0, 1'b0, 1'b0, 4'b0001, 64'hC);
 
     // Test 5: Branch instructions
@@ -194,7 +183,7 @@ module idecode_tb;
 
     // BEQ x1, x2, 16 (branch target = PC + 16)
     instr = 32'b0000000_00010_00001_000_01000_1100011;
-    tick();
+    @(posedge clk);
     check_result("BEQ", 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 1'b0, 4'b0000, 64'h10);
 
     // Test 6: Jump instructions
@@ -202,12 +191,12 @@ module idecode_tb;
 
     // JAL x1, 2048
     instr = 32'b00000000100000000000_00001_1101111;
-    tick();
+    @(posedge clk);
     check_result("JAL", 1'b1, 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 4'b0001, 64'h800);
 
     // JALR x1, x2, 4
     instr = 32'b000000000100_00010_000_00001_1100111;
-    tick();
+    @(posedge clk);
     check_result("JALR", 1'b1, 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 4'b0001, 64'h4);
 
     // Test 7: U-type instructions
@@ -215,12 +204,12 @@ module idecode_tb;
 
     // LUI x1, 0x12345
     instr = 32'b00010010001101000101_00001_0110111;
-    tick();
+    @(posedge clk);
     check_result("LUI", 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0000, 64'h12345000);
 
     // AUIPC x2, 0x12345
     instr = 32'b00010010001101000101_00010_0010111;
-    tick();
+    @(posedge clk);
     check_result("AUIPC", 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0001, 64'h12345000);
 
     // Test 8: CSR instructions
@@ -228,7 +217,7 @@ module idecode_tb;
 
     // CSRRW x1, mstatus, x2 (CSR address 0x300)
     instr = 32'b001100000000_00010_001_00001_1110011;
-    tick();
+    @(posedge clk);
     if (is_csr && csr_addr == 12'h300 && csr_read && csr_write && reg_write_enable) begin
       $display("PASS: CSRRW");
       pass_count++;
@@ -243,14 +232,14 @@ module idecode_tb;
 
     // ECALL
     instr = 32'b000000000000_00000_000_00000_1110011;
-    tick();
+    @(posedge clk);
     check_result("ECALL", 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 4'b0000);
 
     // Test 10: Illegal instruction
     $display("\n=== Testing Illegal Instructions ===");
 
     instr = 32'hFFFFFFFF;  // Invalid opcode
-    tick();
+    @(posedge clk);
     check_result("Illegal Instruction", 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b1, 4'b0000);
 
     // Test 11: Pipeline control
@@ -259,17 +248,17 @@ module idecode_tb;
     // Test stall
     instr = 32'b000001100100_00010_000_00001_0010011;  // ADDI
     stall = 1;
-    tick();
+    @(posedge clk);
     // Outputs should remain from previous instruction
     stall = 0;
-    tick();
+    @(posedge clk);
     check_result("After Stall", 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0001);
 
     // Test flush
     flush = 1;
-    tick();
+    @(posedge clk);
     flush = 0;
-    tick();
+    @(posedge clk);
     check_result("After Flush (NOP)", 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0000);
 
     // Test 12: Edge cases
@@ -277,7 +266,7 @@ module idecode_tb;
 
     // NOP (ADDI x0, x0, 0)
     instr = 32'h00000013;
-    tick();
+    @(posedge clk);
     check_result("NOP", 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0001, 64'h0);
 
     // Final results
