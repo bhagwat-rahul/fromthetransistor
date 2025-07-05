@@ -247,6 +247,7 @@ module idecode_tb;
 
     // Test stall
     instr = 32'b000001100100_00010_000_00001_0010011;  // ADDI
+    @(posedge clk);
     stall = 1;
     @(posedge clk);
     // Outputs should remain from previous instruction
