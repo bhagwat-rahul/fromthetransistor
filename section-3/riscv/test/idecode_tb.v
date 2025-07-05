@@ -182,7 +182,7 @@ module idecode_tb;
     $display("\n=== Testing Branch Instructions ===");
 
     // BEQ x1, x2, 16 (branch target = PC + 16)
-    instr = 32'b0000000_00010_00001_000_01000_1100011;
+    instr = 32'b0000000_00010_00001_000_10000_1100011;
     @(posedge clk);
     check_result("BEQ", 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 1'b0, 4'b0000, 64'h10);
 
@@ -190,7 +190,7 @@ module idecode_tb;
     $display("\n=== Testing Jump Instructions ===");
 
     // JAL x1, 2048
-    instr = 32'b00000000100000000000_00001_1101111;
+    instr = 32'b0000000_00001_00000_000_00001_1101111;
     @(posedge clk);
     check_result("JAL", 1'b1, 1'b0, 1'b0, 1'b0, 1'b1, 1'b0, 4'b0001, 64'h800);
 
