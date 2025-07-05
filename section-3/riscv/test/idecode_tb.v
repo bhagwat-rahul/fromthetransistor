@@ -251,16 +251,18 @@ module idecode_tb;
     stall = 1;
     @(posedge clk);
     // Outputs should remain from previous instruction
+    check_result("During Stall", 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0001, 64'h64);
     stall = 0;
     @(posedge clk);
-    check_result("After Stall", 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0001);
+    check_result("After Stall", 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0001, 64'h64);
 
     // Test flush
     flush = 1;
     @(posedge clk);
+    check_result("During Flush (NOP)", 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0000);
     flush = 0;
     @(posedge clk);
-    check_result("After Flush (NOP)", 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0000);
+    check_result("After Flush", 1'b1, 1'b0, 1'b0, 1'b0, 1'b0, 1'b0, 4'b0001, 64'h64);
 
     // Test 12: Edge cases
     $display("\n=== Testing Edge Cases ===");
