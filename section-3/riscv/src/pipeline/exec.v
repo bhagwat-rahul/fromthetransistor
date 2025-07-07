@@ -57,6 +57,23 @@ module exec #(
     output logic [     3:0] exception_cause
 );
 
+  localparam logic [3:0]
+  NOP  = 4'b0000,
+  ADD  = 4'b0001,
+  SUB  = 4'b0010,
+  AND  = 4'b0011,
+  OR   = 4'b0100,
+  XOR  = 4'b0101,
+  SLL  = 4'b0110,
+  SRL  = 4'b0111,
+  SRA  = 4'b1000,
+  SLT  = 4'b1001,
+  SLTU = 4'b1010;
+
+  localparam logic [2:0] BEQ = 3'h0, BNE = 3'h1, BLT = 3'h4, BGE = 3'h5, BLTU = 3'h6, BGEU = 3'h7;
+
+  localparam logic [6:0] R = 7'b0110011, I = 7'b0010011, J = 7'b1101111, jalrI = 7'b1100111;
+
   logic [11:0] csr_addr_out_reg, csr_addr_out_reg_next;
   logic [XLEN-1:0] csr_wdata_reg, csr_wdata_reg_next;
   logic csr_read_out_reg, csr_read_out_reg_next;
@@ -78,6 +95,10 @@ module exec #(
   logic exception_occurred_reg, exception_occurred_reg_next;
   logic [XLEN-1:0] exception_pc_reg, exception_pc_reg_next;
   logic [3:0] exception_cause_reg, exception_cause_reg_next;
+
+  // Internals
+  logic [XLEN-1:0] alu_operand_b;
+  assign alu_operand_b = (opcode == I) ? imm : rs2_data;
 
   always_ff @(posedge clk or negedge resetn) begin
     if (resetn == 0) begin
@@ -150,20 +171,9 @@ module exec #(
   end
 
   always_comb begin
-    csr_addr_out_reg_next         = csr_addr_out_reg;
+    // Stay the same if nothing else
     csr_wdata_reg_next            = csr_wdata_reg;
-    csr_read_out_reg_next         = csr_read_out_reg;
-    csr_write_out_reg_next        = csr_write_out_reg;
     alu_result_reg_next           = alu_result_reg;
-    rs2_data_out_reg_next         = rs2_data_out_reg;
-    pc_out_reg_next               = pc_out_reg;
-    rd_out_reg_next               = rd_out_reg;
-    funct3_out_reg_next           = funct3_out_reg;
-    reg_write_enable_out_reg_next = reg_write_enable_out_reg;
-    mem_read_out_reg_next         = mem_read_out_reg;
-    mem_write_out_reg_next        = mem_write_out_reg;
-    trap_cause_out_reg_next       = trap_cause_out_reg;
-    trap_out_reg_next             = trap_out_reg;
     branch_taken_reg_next         = branch_taken_reg;
     branch_target_reg_next        = branch_target_reg;
     jump_taken_reg_next           = jump_taken_reg;
@@ -171,6 +181,59 @@ module exec #(
     exception_occurred_reg_next   = exception_occurred_reg;
     exception_pc_reg_next         = exception_pc_reg;
     exception_cause_reg_next      = exception_cause_reg;
+
+    // Pass through
+
+    csr_addr_out_reg_next         = csr_addr;
+    pc_out_reg_next               = pc_in;
+    rd_out_reg_next               = rd;
+    funct3_out_reg_next           = funct3;
+    reg_write_enable_out_reg_next = reg_write_enable;
+    mem_read_out_reg_next         = mem_read;
+    mem_write_out_reg_next        = mem_write;
+    rs2_data_out_reg_next         = rs2_data;
+    trap_out_reg_next             = trap_in;
+    trap_cause_out_reg_next       = trap_cause_out;
+    csr_read_out_reg_next         = csr_read;
+    csr_write_out_reg_next        = csr_write;
+
+    case (alu_op)
+      default: ;
+      NOP: ;
+      ADD: alu_result_reg_next = rs1_data + alu_operand_b;
+      SUB: alu_result_reg_next = rs1_data - alu_operand_b;
+      AND: alu_result_reg_next = rs1_data & alu_operand_b;
+      OR: alu_result_reg_next = rs1_data | alu_operand_b;
+      XOR: alu_result_reg_next = rs1_data ^ alu_operand_b;
+      SLL: alu_result_reg_next = rs1_data << alu_operand_b;
+      SRL: alu_result_reg_next = rs1_data >> alu_operand_b;
+      SRA: alu_result_reg_next = $signed(rs1_data) >> alu_operand_b;
+      SLT: alu_result_reg_next = ($signed(rs1_data) < $signed(alu_operand_b)) ? 1 : 0;
+      SLTU: alu_result_reg_next = (rs1_data < alu_operand_b) ? 1 : 0;
+    endcase
+
+    if (is_branch) begin
+      case (funct3)
+        default: ;
+        BEQ: branch_taken_reg_next = (rs1_data == rs2_data);
+        BNE: branch_taken_reg_next = (rs1_data != rs2_data);
+        BLT: branch_taken_reg_next = ($signed(rs1_data) < $signed(rs2_data));
+        BGE: branch_taken_reg_next = ($signed(rs1_data) >= $signed(rs2_data));
+        BLTU: branch_taken_reg_next = ((rs1_data) < (rs2_data));
+        BGEU: branch_taken_reg_next = ((rs1_data) >= (rs2_data));
+      endcase
+    end
+    if (branch_taken_reg_next) branch_target_reg_next = pc_in + imm;
+
+    if (jump) begin
+      jump_taken_reg_next = 1'b1;
+      if (opcode == J) begin
+        jump_target_reg_next = pc_in + imm;
+      end
+      if (opcode == jalrI) begin
+        jump_target_reg_next = rs1_data + imm;
+      end
+    end
 
   end
 
