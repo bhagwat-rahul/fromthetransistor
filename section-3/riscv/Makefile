@@ -46,27 +46,27 @@ all: riscv
 # --- Test Targets ---
 
 riscv: $(BUILD_DIR)
-	$(VERILATOR) $(VFLAGS) $(TB_RISCV)  $(SRC_RISCV)
+	$(VERILATOR) $(VFLAGS) $(TB_RISCV)  $(SRC_RISCV) --top-module riscv_tb
 	./$(OUT_RISCV)
 
 exec: $(BUILD_DIR)
-	$(VERILATOR) $(VFLAGS)  $(TB_EXEC) $(SRC_EXEC)
+	$(VERILATOR) $(VFLAGS)  $(TB_EXEC) $(SRC_EXEC) --top-module exec_tb
 	./$(OUT_EXEC)
 
 idecode: $(BUILD_DIR)
-	$(VERILATOR) $(VFLAGS)  $(TB_IDECODE) $(SRC_IDECODE)
+	$(VERILATOR) $(VFLAGS)  $(TB_IDECODE) $(SRC_IDECODE) --top-module idecode_tb
 	./$(OUT_IDECODE)
 
 ifetch: $(BUILD_DIR)
-	$(VERILATOR) $(VFLAGS)  $(TB_IFETCH) $(SRC_IFETCH)
+	$(VERILATOR) $(VFLAGS)  $(TB_IFETCH) $(SRC_IFETCH) --top-module ifetch_tb
 	./$(OUT_IFETCH)
 
 memacc: $(BUILD_DIR)
-	$(VERILATOR) $(VFLAGS) $(TB_MEMACC) $(SRC_MEMACC)
+	$(VERILATOR) $(VFLAGS) $(TB_MEMACC) $(SRC_MEMACC) --top-module memacc_tb
 	./$(OUT_MEMACC)
 
 writeback: $(BUILD_DIR)
-	$(VERILATOR) $(VFLAGS) $(TB_WRITEBACK) $(SRC_WRITEBACK)
+	$(VERILATOR) $(VFLAGS) $(TB_WRITEBACK) $(SRC_WRITEBACK) --top-module writeback_tb
 	./$(OUT_WRITEBACK)
 
 show_idecode:
