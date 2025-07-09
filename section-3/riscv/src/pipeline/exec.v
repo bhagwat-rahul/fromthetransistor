@@ -1,4 +1,5 @@
 `default_nettype none `timescale 1ns / 1ns
+import defs_pkg::*;
 
 // Execute / ALU
 
@@ -56,23 +57,6 @@ module exec #(
     output logic [XLEN-1:0] exception_pc,
     output logic [     3:0] exception_cause
 );
-
-  localparam logic [3:0]
-  NOP  = 4'b0000,
-  ADD  = 4'b0001,
-  SUB  = 4'b0010,
-  AND  = 4'b0011,
-  OR   = 4'b0100,
-  XOR  = 4'b0101,
-  SLL  = 4'b0110,
-  SRL  = 4'b0111,
-  SRA  = 4'b1000,
-  SLT  = 4'b1001,
-  SLTU = 4'b1010;
-
-  localparam logic [2:0] BEQ = 3'h0, BNE = 3'h1, BLT = 3'h4, BGE = 3'h5, BLTU = 3'h6, BGEU = 3'h7;
-
-  localparam logic [6:0] R = 7'b0110011, I = 7'b0010011, J = 7'b1101111, jalrI = 7'b1100111;
 
   logic [11:0] csr_addr_out_reg, csr_addr_out_reg_next;
   logic [XLEN-1:0] csr_wdata_reg, csr_wdata_reg_next;
@@ -171,6 +155,7 @@ module exec #(
   end
 
   always_comb begin
+
     // Stay the same if nothing else
     csr_wdata_reg_next            = csr_wdata_reg;
     alu_result_reg_next           = alu_result_reg;
@@ -183,7 +168,6 @@ module exec #(
     exception_cause_reg_next      = exception_cause_reg;
 
     // Pass through
-
     csr_addr_out_reg_next         = csr_addr;
     pc_out_reg_next               = pc_in;
     rd_out_reg_next               = rd;
@@ -193,7 +177,7 @@ module exec #(
     mem_write_out_reg_next        = mem_write;
     rs2_data_out_reg_next         = rs2_data;
     trap_out_reg_next             = trap_in;
-    trap_cause_out_reg_next       = trap_cause_out;
+    trap_cause_out_reg_next       = trap_cause_in;
     csr_read_out_reg_next         = csr_read;
     csr_write_out_reg_next        = csr_write;
 
@@ -205,14 +189,15 @@ module exec #(
       AND: alu_result_reg_next = rs1_data & alu_operand_b;
       OR: alu_result_reg_next = rs1_data | alu_operand_b;
       XOR: alu_result_reg_next = rs1_data ^ alu_operand_b;
-      SLL: alu_result_reg_next = rs1_data << alu_operand_b;
-      SRL: alu_result_reg_next = rs1_data >> alu_operand_b;
-      SRA: alu_result_reg_next = $signed(rs1_data) >> alu_operand_b;
+      SLL: alu_result_reg_next = rs1_data << (alu_operand_b[5:0]);
+      SRL: alu_result_reg_next = rs1_data >> (alu_operand_b[5:0]);
+      SRA: alu_result_reg_next = $signed(rs1_data) >>> (alu_operand_b[5:0]);
       SLT: alu_result_reg_next = ($signed(rs1_data) < $signed(alu_operand_b)) ? 1 : 0;
       SLTU: alu_result_reg_next = (rs1_data < alu_operand_b) ? 1 : 0;
     endcase
 
     if (is_branch) begin
+      branch_target_reg_next = pc_in + imm;
       case (funct3)
         default: ;
         BEQ: branch_taken_reg_next = (rs1_data == rs2_data);
@@ -223,7 +208,6 @@ module exec #(
         BGEU: branch_taken_reg_next = ((rs1_data) >= (rs2_data));
       endcase
     end
-    if (branch_taken_reg_next) branch_target_reg_next = pc_in + imm;
 
     if (jump) begin
       jump_taken_reg_next = 1'b1;
@@ -233,6 +217,31 @@ module exec #(
       if (opcode == jalrI) begin
         jump_target_reg_next = rs1_data + imm;
       end
+    end
+
+    if (is_csr) begin
+      case (funct3)
+        default: ;
+        3'b001:  csr_wdata_reg_next = rs1_data;  // CSRRW
+        3'b010:  csr_wdata_reg_next = csr_rdata | rs1_data;  // CSRRS
+        3'b011:  csr_wdata_reg_next = csr_rdata & ~rs1_data;  // CSRRC
+        3'b101:  csr_wdata_reg_next = imm;  // CSRRWI
+        3'b110:  csr_wdata_reg_next = csr_rdata | imm;  // CSRRSI
+        3'b111:  csr_wdata_reg_next = csr_rdata & ~imm;  // CSRRCI
+      endcase
+      alu_result_reg_next = csr_rdata;
+
+      if (use_pc) begin
+        alu_result_reg_next = pc_in + 64'd4;  // Return address for JAL/JALR
+      end
+    end
+
+    // Missing in your always_comb block:
+    if (opcode == LUI) begin
+      alu_result_reg_next = imm;  // LUI: rd = imm (upper 20 bits)
+    end
+    if (opcode == AUIPC) begin
+      alu_result_reg_next = pc_in + imm;  // AUIPC: rd = pc + imm
     end
 
   end

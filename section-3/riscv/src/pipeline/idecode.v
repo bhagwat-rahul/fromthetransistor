@@ -1,4 +1,5 @@
 `default_nettype none `timescale 1ns / 1ns
+import defs_pkg::*;
 
 // Instruction Decode
 
@@ -36,19 +37,6 @@ module idecode #(
     output logic            jump,
     output logic            use_pc
 );
-
-  localparam logic [3:0]
-  NOP  = 4'b0000,
-  ADD  = 4'b0001,
-  SUB  = 4'b0010,
-  AND  = 4'b0011,
-  OR   = 4'b0100,
-  XOR  = 4'b0101,
-  SLL  = 4'b0110,
-  SRL  = 4'b0111,
-  SRA  = 4'b1000,
-  SLT  = 4'b1001,
-  SLTU = 4'b1010;
 
   // Internal pipeline registers
   logic [6:0] opcode_reg, opcode_reg_next;

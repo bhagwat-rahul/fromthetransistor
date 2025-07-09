@@ -25,6 +25,7 @@ verilator:
       - -Isection-1
       - -Isection-2/led
       - -Isection-2/uart/src
+      - section-3/riscv/common/defs_pkg.v
       - -Isection-3/riscv/src
       - -Isection-3/riscv/src/pipeline
       - -Isection-4

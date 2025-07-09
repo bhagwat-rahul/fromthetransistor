@@ -2,10 +2,12 @@
 
 # Toolchain
 VERILATOR = verilator
-VFLAGS = --binary --trace
+VFLAGS = --binary --trace -I$(COMMON_DIR) $(COMMON_SRC)
 
 # Paths
 SRC_DIR  = src
+COMMON_DIR = common
+COMMON_SRC = $(wildcard $(COMMON_DIR)/*.v $(COMMON_DIR)/*.sv)
 PIPELINE_DIR = src/pipeline
 TEST_DIR = test
 BUILD_DIR = obj_dir
