@@ -214,7 +214,7 @@ module exec #(
       if (opcode == J) begin
         jump_target_reg_next = pc_in + imm;
       end
-      if (opcode == jalrI) begin
+      if (opcode == JALRI) begin
         jump_target_reg_next = rs1_data + imm;
       end
     end
