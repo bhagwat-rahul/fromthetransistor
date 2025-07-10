@@ -21,4 +21,12 @@ package defs_pkg;
 
   localparam logic [6:0] R = 7'b0110011, I = 7'b0010011, J = 7'b1101111, jalrI = 7'b1100111;
 
+  localparam logic [2:0]
+  CSRRW  = 3'b001,
+  CSRRS  = 3'b010,
+  CSRRC  = 3'b011,
+  CSRRWI = 3'b101,
+  CSRRSI = 3'b110,
+  CSRRCI = 3'b111;
+
 endpackage

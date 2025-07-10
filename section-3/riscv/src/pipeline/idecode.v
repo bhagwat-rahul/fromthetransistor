@@ -237,32 +237,32 @@ module idecode #(
           reg_write_enable_reg_next = (rd_reg_next != 5'd0);  // Only write to rd if rd != x0
 
           case (funct3_reg_next)
-            3'b001: begin  // CSRRW - CSR Read/Write
+            CSRRW: begin  // CSRRW - CSR Read/Write
               csr_read_reg_next = (rd_reg_next != 5'd0);
               csr_write_reg_next = 1'b1;
               imm_reg_next = {XLEN{1'b0}};  // Use rs1 value, not immediate
             end
-            3'b010: begin  // CSRRS - CSR Read/Set
+            CSRRS: begin  // CSRRS - CSR Read/Set
               csr_read_reg_next = 1'b1;
               csr_write_reg_next = (rs1_reg_next != 5'd0);  // Only write if rs1 != x0
               imm_reg_next = {XLEN{1'b0}};  // Use rs1 value
             end
-            3'b011: begin  // CSRRC - CSR Read/Clear
+            CSRRC: begin  // CSRRC - CSR Read/Clear
               csr_read_reg_next = 1'b1;
               csr_write_reg_next = (rs1_reg_next != 5'd0);  // Only write if rs1 != x0
               imm_reg_next = {XLEN{1'b0}};  // Use rs1 value
             end
-            3'b101: begin  // CSRRWI - CSR Read/Write Immediate
+            CSRRWI: begin  // CSRRWI - CSR Read/Write Immediate
               csr_read_reg_next = (rd_reg_next != 5'd0);
               csr_write_reg_next = 1'b1;
               imm_reg_next = {{(XLEN - 5) {1'b0}}, instr[19:15]};  // Zero-extend uimm[4:0]
             end
-            3'b110: begin  // CSRRSI - CSR Read/Set Immediate
+            CSRRSI: begin  // CSRRSI - CSR Read/Set Immediate
               csr_read_reg_next = 1'b1;
               csr_write_reg_next = (instr[19:15] != 5'd0);  // Only write if uimm != 0
               imm_reg_next = {{(XLEN - 5) {1'b0}}, instr[19:15]};  // Zero-extend uimm[4:0]
             end
-            3'b111: begin  // CSRRCI - CSR Read/Clear Immediate
+            CSRRCI: begin  // CSRRCI - CSR Read/Clear Immediate
               csr_read_reg_next = 1'b1;
               csr_write_reg_next = (instr[19:15] != 5'd0);  // Only write if uimm != 0
               imm_reg_next = {{(XLEN - 5) {1'b0}}, instr[19:15]};  // Zero-extend uimm[4:0]

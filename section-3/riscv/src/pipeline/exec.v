@@ -222,12 +222,12 @@ module exec #(
     if (is_csr) begin
       case (funct3)
         default: ;
-        3'b001:  csr_wdata_reg_next = rs1_data;  // CSRRW
-        3'b010:  csr_wdata_reg_next = csr_rdata | rs1_data;  // CSRRS
-        3'b011:  csr_wdata_reg_next = csr_rdata & ~rs1_data;  // CSRRC
-        3'b101:  csr_wdata_reg_next = imm;  // CSRRWI
-        3'b110:  csr_wdata_reg_next = csr_rdata | imm;  // CSRRSI
-        3'b111:  csr_wdata_reg_next = csr_rdata & ~imm;  // CSRRCI
+        CSRRW:   csr_wdata_reg_next = rs1_data;
+        CSRRS:   csr_wdata_reg_next = csr_rdata | rs1_data;
+        CSRRC:   csr_wdata_reg_next = csr_rdata & ~rs1_data;
+        CSRRWI:  csr_wdata_reg_next = imm;
+        CSRRSI:  csr_wdata_reg_next = csr_rdata | imm;
+        CSRRCI:  csr_wdata_reg_next = csr_rdata & ~imm;
       endcase
       alu_result_reg_next = csr_rdata;
 
