@@ -232,13 +232,14 @@ module exec #(
       alu_result_reg_next = csr_rdata;
 
       if (use_pc) begin
-        alu_result_reg_next = pc_in + 64'd4;  // Return address for JAL/JALR
+        alu_result_reg_next = pc_in + 64'd4;
+      end else begin
+        alu_result_reg_next = csr_rdata;
       end
     end
 
-    // Missing in your always_comb block:
     if (opcode == LUI) begin
-      alu_result_reg_next = imm;  // LUI: rd = imm (upper 20 bits)
+      alu_result_reg_next = {imm[XLEN-1:12], 12'b0};
     end
     if (opcode == AUIPC) begin
       alu_result_reg_next = pc_in + imm;  // AUIPC: rd = pc + imm
