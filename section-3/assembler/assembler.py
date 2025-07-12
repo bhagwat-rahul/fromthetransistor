@@ -32,5 +32,11 @@ def encode_instruction(instruction: str):
   else:
     print("invalid risc-v assembly")
 
+def remove_cmt(source: str) -> str:
+    return '\n'.join(line.split('#')[0] for line in source.splitlines())
+
+def clean_whitespace(source:str):
+    return '\n'.join(' '.join(line.split()) for line in source.splitlines())
+
 if __name__ == "__main__":
     main()
