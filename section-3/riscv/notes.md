@@ -59,3 +59,24 @@ sign exists in leftmost bit to keep things simple for hw (b 32 in 32 b reg)
 
 any encoding w ilen bits  = 0 | 1 is illegal so an aligned area cant be all 1s / 0s.
 for std instructions sign bit for imm's always in bit 31 for alignment.
+
+nop encoded as ADDI x0, x0, 0. shouldn't change any state except program counter (pc).
+(addi chosen as it takes fewest resources and you can also optimize away in id unit)
+
+instr's in rv32i:- (64 is similar just double width where applicable)
+
+2 types of control transfers are unconditional jumps and conditional branches
+
+jal (jump and link):- encodes signed offset (multiples of 2-bytes, sign extended)
+therefore can jump +- 1 MiB. stores addr of instr following jump into rd, x1 is return addr reg and x5 is alt link reg (std calling convention)
+
+jalr is an imm (I) instr where target addr is obtained by adding sign extended 12 bit
+imm to rs1 then setting lsb of res to 0, addr of following written to rd.
+use x0 as dest if result not required.
+plain direct jumps (pseudocoded jr) are encoded jalr w rd = x0, eg. RET encoded as jalr:-
+with rd = x0, rs1 = x1, and imm = 0.
+
+all unconditional jumps are relative to pc for supporting pos'n independent code.
+jalr was defined to enable 2 instr sequence to jmp anywhere in the absolute addr range.
+lui can first load rs1 with upper 20 bits and jalr can add in lower bits.
+same for auipc + jalr
