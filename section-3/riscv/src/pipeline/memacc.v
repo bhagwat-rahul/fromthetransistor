@@ -47,9 +47,9 @@ module memacc #(
 
 logic [XLEN-1:0] mem_addr_reg, mem_addr_reg_next;
 logic [XLEN-1:0] mem_wdata_reg, mem_wdata_reg_next;
-logic            mem_read_req_reg, mem_req_reg_next;
+logic            mem_read_req_reg, mem_read_req_reg_next;
 logic            mem_write_req_reg, mem_write_req_reg_next;
-logic [     2:0] mem_size, mem_size_reg, mem_size_reg_next;
+logic [     2:0] mem_size_reg, mem_size_reg_next;
 logic            mem_signed_reg, mem_signed_reg_next;
 logic [     4:0] rd_out_reg, rd_out_reg_next;
 logic            reg_write_enable_out_reg, reg_write_enable_out_reg_next;
@@ -164,7 +164,7 @@ always_comb begin
   // Select writeback data
   if (mem_read && mem_ready) begin
     // Process loaded data based on size and signedness
-    writeback_data_reg_next = process_load_data(mem_rdata, funct3);
+    //TODO: writeback_data_reg_next = process_load_data(mem_rdata, funct3);
   end else begin
     // For non-load instructions, pass through ALU result
     writeback_data_reg_next = alu_result;
