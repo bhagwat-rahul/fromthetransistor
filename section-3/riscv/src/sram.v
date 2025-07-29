@@ -1,7 +1,6 @@
 `default_nettype none `timescale 1ns / 1ns
 
-// This is only temp we will use vendor specific sram for fpga and openram for asic
-
+`ifdef SIMULATION_RUN
 module sram #(
     parameter int unsigned XLEN  = 32,
     parameter int unsigned DEPTH = 262144
@@ -19,3 +18,12 @@ module sram #(
     else data_out <= mem[addr];
   end
 endmodule
+`endif
+
+`ifdef FPGA_RUN
+
+`endif
+
+`ifdef ASIC_RUN
+
+`endif

@@ -2,7 +2,7 @@
 
 # Toolchain
 VERILATOR = verilator
-VFLAGS = --binary --trace -I$(COMMON_DIR) $(COMMON_SRC)
+VFLAGS = --binary --trace -I$(COMMON_DIR) $(COMMON_SRC) -DSIMULATION_RUN
 
 # Paths
 SRC_DIR  = src
