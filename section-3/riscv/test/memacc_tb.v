@@ -30,6 +30,7 @@ module memacc_tb #(
   logic [XLEN-1:0] mem_rdata;
   logic            mem_ready;
   logic            mem_error;
+  logic            mem_stall;
   logic [     4:0] rd_out;
   logic            reg_write_enable_out;
   logic [XLEN-1:0] writeback_data;
@@ -60,7 +61,6 @@ module memacc_tb #(
       .trap_in,
       .csr_addr,
       .csr_wdata,
-      .csr_read,
       .csr_write,
       .mem_addr,
       .mem_wdata,
@@ -71,6 +71,7 @@ module memacc_tb #(
       .mem_rdata,
       .mem_ready,
       .mem_error,
+      .mem_stall,
       .rd_out,
       .reg_write_enable_out,
       .writeback_data,
