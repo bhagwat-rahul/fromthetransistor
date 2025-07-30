@@ -31,6 +31,7 @@ module memacc #(
     output logic [XLEN-1:0] mem_wdata,
     output logic            mem_read_req,
     output logic            mem_write_req,
+    output logic            mem_stall,
     output logic [     2:0] mem_size,       // 0=byte, 1=half, 2=word, 3=double
     output logic            mem_signed,
     output logic [     4:0] rd_out,
@@ -71,7 +72,6 @@ always_ff @(posedge clk or negedge resetn) begin
     mem_size_reg           <= 3'd0;
     mem_signed_reg         <= 1'b0;
     rd_out_reg             <= 5'd0;
-    reg_write_enable_out_reg <= 1'b0;
     writeback_data_reg     <= '0;
     pc_out_reg             <= '0;
     exception_occurred_reg <= 1'b0;
@@ -80,6 +80,7 @@ always_ff @(posedge clk or negedge resetn) begin
     csr_addr_out_reg       <= 12'd0;
     csr_wdata_out_reg      <= '0;
     csr_write_out_reg      <= 1'b0;
+    reg_write_enable_out_reg <= 1'b0;
   end else if (flush) begin
     mem_addr_reg           <= '0;
     mem_wdata_reg          <= '0;
@@ -138,6 +139,7 @@ always_comb begin
   reg_write_enable_out_reg_next = reg_write_enable_out_reg;
 
   // Update with new values from execute stage
+  if (!stall) begin
   mem_addr_reg_next           = alu_result;
   mem_wdata_reg_next          = rs2_data;
   mem_read_req_reg_next       = mem_read;
@@ -153,22 +155,40 @@ always_comb begin
   csr_write_out_reg_next      = csr_write;
   reg_write_enable_out_reg_next = reg_write_enable;
 
-  // Set memory size based on funct3
-  unique case (funct3[1:0])
-    2'b00: mem_size_reg_next = 3'd0; // byte
-    2'b01: mem_size_reg_next = 3'd1; // half
-    2'b10: mem_size_reg_next = 3'd2; // word
-    2'b11: mem_size_reg_next = 3'd3; // double
-  endcase
+    // Set memory size based on funct3
+    unique case (funct3[1:0])
+      2'b00: mem_size_reg_next = 3'd0; // byte
+      2'b01: mem_size_reg_next = 3'd1; // half
+      2'b10: mem_size_reg_next = 3'd2; // word
+      2'b11: mem_size_reg_next = 3'd3; // double
+    endcase
+  end
+
+  if (mem_error) begin
+    exception_occurred_reg_next = 1'b1;
+    exception_pc_reg_next = pc_in;
+    exception_cause_reg_next = 4'd5; // Load access fault
+    reg_write_enable_out_reg_next = 1'b0; // Don't write on error
+    writeback_data_reg_next = '0; // Clear data on error
+  end
 
   // Select writeback data
-  if (mem_read && mem_ready) begin
-    // Process loaded data based on size and signedness
-    //TODO: writeback_data_reg_next = process_load_data(mem_rdata, funct3);
-  end else begin
+  if (mem_read && mem_ready && !mem_error) begin
+  case (funct3)
+      3'b000: writeback_data_reg_next = {{(XLEN-8){mem_rdata[7]}}, mem_rdata[7:0]};
+      3'b001: writeback_data_reg_next = {{(XLEN-16){mem_rdata[15]}}, mem_rdata[15:0]};
+      3'b010: writeback_data_reg_next = {{(XLEN-32){mem_rdata[31]}}, mem_rdata[31:0]};
+      3'b011: writeback_data_reg_next = mem_rdata[XLEN-1:0];
+      3'b100: writeback_data_reg_next = {{(XLEN-8){1'b0}}, mem_rdata[7:0]};
+      3'b101: writeback_data_reg_next = {{(XLEN-16){1'b0}}, mem_rdata[15:0]};
+      3'b110: writeback_data_reg_next = {{(XLEN-32){1'b0}}, mem_rdata[31:0]};
+      default: writeback_data_reg_next = mem_rdata;
+      endcase
+  end else if (!stall && !mem_read) begin
     // For non-load instructions, pass through ALU result
     writeback_data_reg_next = alu_result;
   end
+
 end
 
 // Output assignments
@@ -178,7 +198,8 @@ assign mem_read_req        = mem_read_req_reg;
 assign mem_write_req       = mem_write_req_reg;
 assign mem_size            = mem_size_reg;
 assign mem_signed          = mem_signed_reg;
-assign rd_out              = rd_out_reg;
+assign mem_stall           = (mem_read_req_reg || mem_write_req_reg) && !mem_ready && !mem_error;
+  assign rd_out            = rd_out_reg;
 assign writeback_data      = writeback_data_reg;
 assign pc_out              = pc_out_reg;
 assign exception_occurred  = exception_occurred_reg;
