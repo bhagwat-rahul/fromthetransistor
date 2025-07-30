@@ -21,7 +21,6 @@ module memacc #(
     input logic             trap_in,
     input logic [    11:0]  csr_addr,
     input logic [XLEN-1:0]  csr_wdata,
-    input logic             csr_read,
     input logic             csr_write,
     input logic [XLEN-1:0]  mem_rdata,
     input logic             mem_ready,
@@ -62,6 +61,12 @@ logic [     3:0] exception_cause_reg, exception_cause_reg_next;
 logic [    11:0] csr_addr_out_reg, csr_addr_out_reg_next;
 logic [XLEN-1:0] csr_wdata_out_reg, csr_wdata_out_reg_next;
 logic            csr_write_out_reg, csr_write_out_reg_next;
+
+localparam logic[2:0]
+BYTE   = 3'd0,
+HALF   = 3'd1,
+WORD   = 3'd2,
+DOUBLE = 3'd3;
 
 always_ff @(posedge clk or negedge resetn) begin
   if (resetn == 0) begin
@@ -157,19 +162,19 @@ always_comb begin
 
     // Set memory size based on funct3
     unique case (funct3[1:0])
-      2'b00: mem_size_reg_next = 3'd0; // byte
-      2'b01: mem_size_reg_next = 3'd1; // half
-      2'b10: mem_size_reg_next = 3'd2; // word
-      2'b11: mem_size_reg_next = 3'd3; // double
+      2'b00: mem_size_reg_next = BYTE;
+      2'b01: mem_size_reg_next = HALF;
+      2'b10: mem_size_reg_next = WORD;
+      2'b11: mem_size_reg_next = DOUBLE;
     endcase
   end
 
   if (mem_error) begin
-    exception_occurred_reg_next = 1'b1;
-    exception_pc_reg_next = pc_in;
-    exception_cause_reg_next = 4'd5; // Load access fault
+    exception_occurred_reg_next   = 1'b1;
+    exception_pc_reg_next         = pc_in;
+    exception_cause_reg_next      = 4'd5; // Load access fault
     reg_write_enable_out_reg_next = 1'b0; // Don't write on error
-    writeback_data_reg_next = '0; // Clear data on error
+    writeback_data_reg_next       = '0; // Clear data on error
   end
 
   // Select writeback data
@@ -199,7 +204,7 @@ assign mem_write_req       = mem_write_req_reg;
 assign mem_size            = mem_size_reg;
 assign mem_signed          = mem_signed_reg;
 assign mem_stall           = (mem_read_req_reg || mem_write_req_reg) && !mem_ready && !mem_error;
-assign rd_out            = rd_out_reg;
+assign rd_out              = rd_out_reg;
 assign writeback_data      = writeback_data_reg;
 assign pc_out              = pc_out_reg;
 assign exception_occurred  = exception_occurred_reg;
