@@ -3,8 +3,20 @@
 module hazard_detector #(
     parameter logic [8:0] XLEN = 9'd64
 ) (
-    input clk,
-    input resetn
+    input logic clk,
+    input logic resetn
 );
+
+always @(posedge clk or negedge resetn) begin
+  if (!resetn) begin
+
+  end else begin
+
+  end
+end
+
+always_comb begin
+
+end
 
 endmodule
