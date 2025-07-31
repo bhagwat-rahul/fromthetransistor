@@ -1,8 +1,7 @@
 `default_nettype none `timescale 1ns / 1ns
 
-`ifdef SIMULATION_RUN
 module sram #(
-    parameter int unsigned XLEN  = 32,
+    parameter logic[8:0] XLEN  = 64,
     parameter int unsigned DEPTH = 262144
 ) (
     input wire clk,
@@ -11,19 +10,34 @@ module sram #(
     input wire [XLEN-1:0] data_in,
     output reg [XLEN-1:0] data_out
 );
+
+/** running software simulation **/
+`ifdef SIMULATION_RUN
+
   reg [XLEN-1:0] mem[DEPTH];
 
   always @(posedge clk) begin
     if (we) mem[addr] <= data_in;
     else data_out <= mem[addr];
   end
+
+  `endif
+
+  /** synth'ing on FPGA **/
+  `ifdef FPGA_RUN
+
+  reg [XLEN-1:0] mem[DEPTH];
+
+  always @(posedge clk) begin
+    if (we) mem[addr] <= data_in;
+    else data_out <= mem[addr];
+  end
+
+  `endif
+
+  /** taping out on asic (dep's on PDK) **/
+  `ifdef ASIC_RUN
+
+  `endif
+
 endmodule
-`endif
-
-`ifdef FPGA_RUN
-
-`endif
-
-`ifdef ASIC_RUN
-
-`endif
