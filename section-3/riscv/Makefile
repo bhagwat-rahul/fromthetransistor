@@ -19,6 +19,7 @@ OUT_IDECODE   = $(BUILD_DIR)/Videcode_tb
 OUT_IFETCH    = $(BUILD_DIR)/Vifetch_tb
 OUT_MEMACC    = $(BUILD_DIR)/Vmemacc_tb
 OUT_WRITEBACK = $(BUILD_DIR)/Vwriteback_tb
+OUT_PROG      = $(BUILD_DIR)/Vriscv_program_tb
 
 # Sources
 SRC_RISCV     = $(SRC_DIR)/riscv.v
@@ -28,6 +29,18 @@ SRC_IFETCH    = $(PIPELINE_DIR)/ifetch.v
 SRC_MEMACC    = $(PIPELINE_DIR)/memacc.v
 SRC_WRITEBACK = $(PIPELINE_DIR)/writeback.v
 
+# Supporting module sources
+SRC_REGFILE      = $(SRC_DIR)/regfile.v
+SRC_MEMORY_CTRL  = $(SRC_DIR)/memory_controller.v
+SRC_HAZARD_DET   = $(SRC_DIR)/hazard_detector.v
+SRC_SRAM         = $(SRC_DIR)/sram.v
+
+# Pipeline sources (all pipeline modules)
+PIPELINE_SOURCES = $(SRC_IFETCH) $(SRC_IDECODE) $(SRC_EXEC) $(SRC_MEMACC) $(SRC_WRITEBACK)
+
+# All sources needed for full RISC-V processor
+ALL_RISCV_SOURCES = $(SRC_RISCV) $(PIPELINE_SOURCES) $(SRC_REGFILE) $(SRC_MEMORY_CTRL) $(SRC_HAZARD_DET) $(SRC_SRAM)
+
 # Testbenches
 TB_RISCV     = $(TEST_DIR)/riscv_tb.v
 TB_EXEC      = $(TEST_DIR)/exec_tb.v
@@ -35,6 +48,7 @@ TB_IDECODE   = $(TEST_DIR)/idecode_tb.v
 TB_IFETCH    = $(TEST_DIR)/ifetch_tb.v
 TB_MEMACC    = $(TEST_DIR)/memacc_tb.v
 TB_WRITEBACK = $(TEST_DIR)/writeback_tb.v
+TB_PROG = $(TEST_DIR)/riscv_program_tb.v
 
 # Ensure build dir exists
 $(BUILD_DIR):
@@ -46,19 +60,23 @@ all: riscv
 # --- Test Targets ---
 
 riscv: $(BUILD_DIR)
-	$(VERILATOR) $(VFLAGS) $(TB_RISCV)  $(SRC_RISCV) --top-module riscv_tb
+	$(VERILATOR) $(VFLAGS) $(TB_RISCV) $(ALL_RISCV_SOURCES) --top-module riscv_tb
 	./$(OUT_RISCV)
 
+prog: $(BUILD_DIR)
+	$(VERILATOR) $(VFLAGS) $(TB_PROG) $(ALL_RISCV_SOURCES) --top-module riscv_program_tb
+	./$(OUT_PROG)
+
 exec: $(BUILD_DIR)
-	$(VERILATOR) $(VFLAGS)  $(TB_EXEC) $(SRC_EXEC) --top-module exec_tb
+	$(VERILATOR) $(VFLAGS) $(TB_EXEC) $(SRC_EXEC) --top-module exec_tb
 	./$(OUT_EXEC)
 
 idecode: $(BUILD_DIR)
-	$(VERILATOR) $(VFLAGS)  $(TB_IDECODE) $(SRC_IDECODE) --top-module idecode_tb
+	$(VERILATOR) $(VFLAGS) $(TB_IDECODE) $(SRC_IDECODE) --top-module idecode_tb
 	./$(OUT_IDECODE)
 
 ifetch: $(BUILD_DIR)
-	$(VERILATOR) $(VFLAGS)  $(TB_IFETCH) $(SRC_IFETCH) --top-module ifetch_tb
+	$(VERILATOR) $(VFLAGS) $(TB_IFETCH) $(SRC_IFETCH) --top-module ifetch_tb
 	./$(OUT_IFETCH)
 
 memacc: $(BUILD_DIR)
