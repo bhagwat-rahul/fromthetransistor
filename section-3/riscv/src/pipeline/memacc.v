@@ -1,4 +1,5 @@
 `default_nettype none `timescale 1ns / 1ns
+import defs_pkg::*;
 
 // Memory Access
 
@@ -61,12 +62,6 @@ logic [     3:0] exception_cause_reg, exception_cause_reg_next;
 logic [    11:0] csr_addr_out_reg, csr_addr_out_reg_next;
 logic [XLEN-1:0] csr_wdata_out_reg, csr_wdata_out_reg_next;
 logic            csr_write_out_reg, csr_write_out_reg_next;
-
-localparam logic[2:0]
-BYTE   = 3'd0,
-HALF   = 3'd1,
-WORD   = 3'd2,
-DOUBLE = 3'd3;
 
 always_ff @(posedge clk or negedge resetn) begin
   if (resetn == 0) begin

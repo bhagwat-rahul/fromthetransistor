@@ -33,4 +33,10 @@ package defs_pkg;
   CSRRSI = 3'b110,
   CSRRCI = 3'b111;
 
+  localparam logic[2:0]
+  BYTE   = 3'd0,
+  HALF   = 3'd1,
+  WORD   = 3'd2,
+  DOUBLE = 3'd3;
+
 endpackage
