@@ -17,7 +17,7 @@ module riscv_tb ();
     $display("resetting");
     #100 resetn = 1;
     $display("reset done");
-    #6000 $finish;
+    #1000 $finish;
   end
 
   riscv #(
