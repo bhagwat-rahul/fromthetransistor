@@ -119,6 +119,9 @@ module riscv #(
   // ============================================================================
   assign pipeline_stall = mem_stall || hazard_stall;
   assign pipeline_flush = branch_taken || jump_taken;
+  assign next_pc = branch_taken ? branch_target :
+                   jump_taken ? jump_target :
+                   pc + 4;
 
   always_ff @(posedge clk or negedge resetn) begin
     if (!resetn) begin
