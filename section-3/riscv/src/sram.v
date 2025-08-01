@@ -8,13 +8,13 @@ module sram #(
     input logic we,
     input logic [$clog2(DEPTH)-1:0] addr,
     input logic [XLEN-1:0] data_in,
-    output reg [XLEN-1:0] data_out
+    output logic [XLEN-1:0] data_out
 );
 
 /** running software simulation **/
 `ifdef SIMULATION_RUN
 
-  reg [XLEN-1:0] mem[DEPTH];
+  logic [XLEN-1:0] mem[DEPTH];
 
   always @(posedge clk) begin
     if (we) mem[addr] <= data_in;
@@ -26,7 +26,7 @@ module sram #(
   /** synth'ing on FPGA **/
   `ifdef FPGA_RUN
 
-  reg [XLEN-1:0] mem[DEPTH];
+  logic [XLEN-1:0] mem[DEPTH];
 
   always @(posedge clk) begin
     if (we) mem[addr] <= data_in;
