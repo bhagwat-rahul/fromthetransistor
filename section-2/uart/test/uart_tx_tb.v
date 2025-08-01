@@ -25,8 +25,13 @@ module uart_tx_tb ();
     $monitor("Tx Pin: %b, state: %0d, time %0t", tx_pin, tx1.tx_state, $time);
     clk = 0;
     baud_tick = 0;
+<<<<<<< Updated upstream
     resetn = 0;
     #50 resetn = 1;
+=======
+    resetn = 1;
+    #50 resetn = 0;
+>>>>>>> Stashed changes
     #100 send_request = 1;
     $display("Clocking, reset done");
     tx_data = 8'b0101_0101;
@@ -41,7 +46,11 @@ module uart_tx_tb ();
   end
 
   always_ff @(posedge clk or negedge resetn) begin
+<<<<<<< Updated upstream
     if (!resetn) begin
+=======
+    if (resetn) begin
+>>>>>>> Stashed changes
       counter   <= 0;
       baud_tick <= 0;
     end else begin

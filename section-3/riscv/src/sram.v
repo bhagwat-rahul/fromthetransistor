@@ -4,10 +4,10 @@ module sram #(
     parameter logic[8:0] XLEN  = 64,
     parameter int unsigned DEPTH = 262144
 ) (
-    input wire clk,
-    input wire we,
-    input wire [$clog2(DEPTH)-1:0] addr,
-    input wire [XLEN-1:0] data_in,
+    input logic clk,
+    input logic we,
+    input logic [$clog2(DEPTH)-1:0] addr,
+    input logic [XLEN-1:0] data_in,
     output reg [XLEN-1:0] data_out
 );
 
