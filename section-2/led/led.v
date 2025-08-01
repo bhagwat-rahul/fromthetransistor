@@ -3,14 +3,14 @@
 module led #(
     parameter logic [31:0] CLOCK_SPEED = 1000
 ) (
-  `ifdef SIMULATION
+  `ifdef SIMULATION_RUN
     input  logic clk,
   `endif
     input  logic resetn,
     output logic led_1
 );
 
-`ifdef FPGA
+`ifdef FPGA_RUN
 logic clk;
 SB_HFOSC #(.CLKHF_DIV("0b10")) hfosc_inst (
     .CLKHFEN(1'b1),

@@ -21,6 +21,7 @@ verilator:
       - --timing
       - --sv
       - -Wall
+      - -DSIMULATION_RUN
       # add an -I for each folder you use as a module search path
       - -Isection-1
       - -Isection-2/led

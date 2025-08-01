@@ -15,7 +15,7 @@ VVP       := $(shell which vvp)
 all: $(OBJ_DIR)/$(PROJ).bin
 
 $(OBJ_DIR)/%.json: %.v | $(OBJ_DIR)
-	$(YOSYS) -p 'read_verilog -sv -DFPGA $<; chparam -set CLOCK_SPEED 12000000 $(PROJ); synth_ice40 -top $(PROJ) -json $@'
+	$(YOSYS) -p 'read_verilog -sv -DFPGA_RUN $<; chparam -set CLOCK_SPEED 12000000 $(PROJ); synth_ice40 -top $(PROJ) -json $@'
 
 $(OBJ_DIR)/%.asc: $(PIN_DEF) $(OBJ_DIR)/%.json
 	$(NEXTPNR) --$(DEVICE) --package $(PACKAGE) --asc $@ --pcf $(PIN_DEF) --json $(OBJ_DIR)/$*.json
@@ -25,7 +25,7 @@ $(OBJ_DIR)/%.bin: $(OBJ_DIR)/%.asc
 
 # Simulation targets
 $(OBJ_DIR)/$(PROJ)_tb.vvp: $(PROJ).v $(PROJ)_tb.v | $(OBJ_DIR)
-	$(IVERILOG) -g2012 -DSIMULATION -o $@ $^
+	$(IVERILOG) -g2012 -DSIMULATION_RUN -o $@ $^
 
 sim: $(OBJ_DIR)/$(PROJ)_tb.vvp
 	$(VVP) $<
