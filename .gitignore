@@ -12,6 +12,7 @@
 *.hi
 *.o
 *.vcd
+*.history
 # Don't ignore .gitignore itself
 !.gitignore
 # Ignore foll dirs their contents

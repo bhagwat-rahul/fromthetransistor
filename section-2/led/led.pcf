@@ -1,0 +1,4 @@
+set_io clk    25
+set_io resetn 10
+set_io led_1  39
+set_io led_2  40

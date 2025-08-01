@@ -1,22 +1,28 @@
 `default_nettype none `timescale 1ns / 1ns
 
 module led_tb ();
-  logic clk, reset, led_1;
+  logic clk, resetn, led_1;
 
-  // Clock generation: 100 MHz
-  initial clk = 0;
   always #5 clk <= ~clk;
 
-  // Reset generation: active high for 20 ns
   initial begin
-    reset = 1;
-    #20 reset = 0;
+    $dumpfile("obj_dir/led_tb.vcd");
+    $dumpvars(0, led);
+    $monitor("LED 1: %b at time %0t", led.led_1, $time);
+    clk    = 0;
+    resetn = 0;
+    #100
+    resetn = 1;
+    $display("resetn done");
+    #1000000
+    $finish;
   end
 
-  // Instantiate the LED module
-  led led (
+  led # (
+   .CLOCK_SPEED(1000)
+  ) led (
       .clk  (clk),
-      .reset(reset),
+      .resetn(resetn),
       .led_1(led_1)
   );
 endmodule
