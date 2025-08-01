@@ -20,13 +20,13 @@ module ifetch_tb #(
     #50 resetn = 1;
     $display("Reset done!");
     pc_valid   = 1;
-    pc_next    = 64'hx8000_0000;
+    pc_next    = 64'h8000_0000;
     stall      = 0;
     flush      = 0;
     imem_valid = 1;
     imem_ready = 1;
     imem_err   = 0;
-    imem_data  = 64'hx726168756C2121;
+    imem_data  = 64'h726168756C2121;
     #200 $finish;
   end
 
