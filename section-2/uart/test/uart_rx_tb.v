@@ -30,11 +30,7 @@ module uart_rx_tb ();
     resetn = 0;
     rx_pin = 1;
     parity_enable = 1;
-<<<<<<< Updated upstream
     #50 resetn = 1;
-=======
-    #50 resetn = 0;
->>>>>>> Stashed changes
     $display("reset done!");
     wait_ticks(16);
     send_uart_frame(8'b0100_1110, 1);
