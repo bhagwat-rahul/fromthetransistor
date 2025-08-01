@@ -6,7 +6,7 @@ module baud_gen #(
     parameter logic [4:0] OVS_FACTOR = 16  // Oversampling Factor
 ) (
     input  logic clk,
-    input  logic reset,
+    input  logic resetn,
     output logic baud_tick,
     output logic tick_16x
 );
@@ -25,8 +25,8 @@ module baud_gen #(
       $fatal(1, "OVS_FACTOR must be power of 2, got %0d", OVS_FACTOR);
   end
 
-  always_ff @(posedge clk or posedge reset) begin
-    if (reset) begin
+  always_ff @(posedge clk or negedge resetn) begin
+    if (!resetn) begin
       acc <= 49'd0;
       oversample_counter <= {OVSWIDTH{1'b0}};
       baud_tick <= 1'b0;

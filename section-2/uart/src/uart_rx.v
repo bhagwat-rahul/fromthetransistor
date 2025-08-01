@@ -5,7 +5,7 @@ module uart_rx #(
     parameter logic [4:0] OVS_FACTOR = 16
 ) (
     input logic clk,
-    input logic reset,
+    input logic resetn,
     input logic tick_16x,
     input logic rx_pin,
     input logic parity_enable,
@@ -45,8 +45,8 @@ module uart_rx #(
       $fatal(1, "OVS_FACTOR must be power of 2, got %0d", OVS_FACTOR);
   end
 
-  always_ff @(posedge clk or posedge reset) begin
-    if (reset) begin
+  always_ff @(posedge clk or negedge resetn) begin
+    if (!resetn) begin
       rx_state       <= IDLE;
       os_count       <= 0;
       rx_shift       <= 0;

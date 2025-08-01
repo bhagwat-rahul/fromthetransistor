@@ -29,7 +29,7 @@ TB_BAUD  = $(TEST_DIR)/baud_gen_tb.v
 TB_UART  = $(TEST_DIR)/uart_tb.v
 
 # Default rule
-all: test_tx test_rx test_baud test_uart
+all: tx rx baud uart
 
 # Ensure build dir exists
 $(BUILD_DIR):

@@ -2,7 +2,7 @@
 
 module uart_tb ();
   // Clock and reset
-  logic clk, reset;
+  logic clk, resetn;
 
   // UART signals
   logic uart_line;  // Connect TX to RX
@@ -23,7 +23,7 @@ module uart_tb ();
       .OVS_FACTOR(16)
   ) uart_tx_inst (
       .clk          (clk),
-      .reset        (reset),
+      .resetn        (resetn),
       .rx_pin       (1'b1),           // Not used for TX
       .send_request (send_request),
       .tx_data      (tx_data),
@@ -44,7 +44,7 @@ module uart_tb ();
       .OVS_FACTOR(16)
   ) uart_rx_inst (
       .clk          (clk),
-      .reset        (reset),
+      .resetn        (resetn),
       .rx_pin       (uart_line),
       .send_request (1'b0),           // Not used for RX
       .tx_data      (8'h00),          // Not used
@@ -67,13 +67,13 @@ module uart_tb ();
 
     // Initialize signals
     clk = 0;
-    reset = 1;
+    resetn = 0;
     send_request = 0;
     tx_data = 8'h00;
     parity_enable = 0;
 
     // Reset sequence
-    #100 reset = 0;
+    #100 resetn = 1;
     #200;
 
     // Test cases

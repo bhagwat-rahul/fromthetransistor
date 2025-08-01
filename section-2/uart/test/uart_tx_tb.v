@@ -2,14 +2,14 @@
 
 module uart_tx_tb ();
 
-  logic clk, reset, baud_tick, send_request, parity_enable;
+  logic clk, resetn, baud_tick, send_request, parity_enable;
   logic [7:0] tx_data;
   logic tx_pin, tx_busy, tx_done;
   logic [5:0] counter;
 
   uart_tx tx1 (
       .clk,
-      .reset,
+      .resetn,
       .baud_tick,
       .send_request,
       .tx_data,
@@ -25,8 +25,8 @@ module uart_tx_tb ();
     $monitor("Tx Pin: %b, state: %0d, time %0t", tx_pin, tx1.tx_state, $time);
     clk = 0;
     baud_tick = 0;
-    reset = 1;
-    #50 reset = 0;
+    resetn = 0;
+    #50 resetn = 1;
     #100 send_request = 1;
     $display("Clocking, reset done");
     tx_data = 8'b0101_0101;
@@ -40,8 +40,8 @@ module uart_tx_tb ();
     #2000 $finish;
   end
 
-  always_ff @(posedge clk or posedge reset) begin
-    if (reset) begin
+  always_ff @(posedge clk or negedge resetn) begin
+    if (!resetn) begin
       counter   <= 0;
       baud_tick <= 0;
     end else begin

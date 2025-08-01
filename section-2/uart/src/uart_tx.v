@@ -4,7 +4,7 @@ module uart_tx #(
     parameter int DATA_BITS = 8
 ) (
     input  logic                 clk,
-    input  logic                 reset,
+    input  logic                 resetn,
     input  logic                 baud_tick,
     input  logic                 send_request,
     input  logic [DATA_BITS-1:0] tx_data,
@@ -31,8 +31,8 @@ module uart_tx #(
   logic tx_done_reg, next_tx_done;
   fsm_e tx_state, next_tx_state;
 
-  always_ff @(posedge clk or posedge reset) begin
-    if (reset) begin
+  always_ff @(posedge clk or negedge resetn) begin
+    if (!resetn) begin
       tx_shift    <= {DATA_BITS{1'b1}};
       tx_state    <= IDLE;
       bit_index   <= 0;

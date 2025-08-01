@@ -7,7 +7,7 @@ module uart #(
     parameter logic [4:0] OVS_FACTOR = 16
 ) (
     input logic       clk,
-    input logic       reset,
+    input logic       resetn,
     input logic       rx_pin,
     input logic       send_request,
     input logic [7:0] tx_data,
@@ -39,7 +39,7 @@ module uart #(
       .OVS_FACTOR(OVS_FACTOR)
   ) baud_gen_a (
       .clk(clk),
-      .reset(reset),
+      .resetn(resetn),
       .baud_tick(baud_tick),
       .tick_16x(tick_16x)
   );
@@ -49,7 +49,7 @@ module uart #(
       .OVS_FACTOR(OVS_FACTOR)
   ) uart_rx_a (
       .clk(clk),
-      .reset(reset),
+      .resetn(resetn),
       .tick_16x(tick_16x),
       .rx_pin(rx_pin),
       .parity_enable(parity_enable),
@@ -63,7 +63,7 @@ module uart #(
       .DATA_BITS(DATA_BITS)
   ) uart_tx_a (
       .clk(clk),
-      .reset(reset),
+      .resetn(resetn),
       .baud_tick(baud_tick),
       .tx_data(tx_data),
       .send_request(send_request),

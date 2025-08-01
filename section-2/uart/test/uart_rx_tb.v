@@ -2,7 +2,7 @@
 
 module uart_rx_tb ();
 
-  logic clk, reset;
+  logic clk, resetn;
   logic tick_16x, rx_pin, parity_enable;
   logic [7:0] rx_data;
   logic data_ready, parity_err, frame_err;
@@ -10,7 +10,7 @@ module uart_rx_tb ();
 
   uart_rx uart_rx_1 (
       .clk,
-      .reset,
+      .resetn,
       .tick_16x,
       .rx_pin,
       .parity_enable,
@@ -27,10 +27,10 @@ module uart_rx_tb ();
         "RX Data: %b and rx_pin: %b, frame err: %b, data_ready: %b, state: %0d, os_count: %0d, time: %0t",
         rx_data, rx_pin, frame_err, data_ready, uart_rx_1.rx_state, uart_rx_1.os_count, $time);
     clk = 0;
-    reset = 1;
+    resetn = 0;
     rx_pin = 1;
     parity_enable = 1;
-    #50 reset = 0;
+    #50 resetn = 1;
     $display("reset done!");
     wait_ticks(16);
     send_uart_frame(8'b0100_1110, 1);
@@ -38,8 +38,8 @@ module uart_rx_tb ();
     $finish;
   end
 
-  always_ff @(posedge clk or posedge reset) begin
-    if (reset) begin
+  always_ff @(posedge clk or negedge resetn) begin
+    if (!resetn) begin
       counter  <= 0;
       tick_16x <= 0;
     end else begin

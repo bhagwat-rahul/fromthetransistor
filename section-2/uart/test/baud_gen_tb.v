@@ -2,7 +2,7 @@
 
 module baud_gen_tb ();
 
-  logic baud_tick, tick_16x, reset, clk;
+  logic baud_tick, tick_16x, resetn, clk;
 
   // verilator lint_off BLKSEQ
   always #5 clk = ~clk;
@@ -11,8 +11,8 @@ module baud_gen_tb ();
 
   initial begin
     clk   = 0;
-    reset = 1;
-    #50 reset = 0;
+    resetn = 0;
+    #50 resetn = 1;
     $monitor("Time=%0t baud_tick=%b tick_16x=%b", $time, baud_tick, tick_16x);
     #700;
     $finish;
@@ -20,7 +20,7 @@ module baud_gen_tb ();
 
   baud_gen baud_gen (
       .clk,
-      .reset,
+      .resetn,
       .baud_tick,
       .tick_16x
   );
