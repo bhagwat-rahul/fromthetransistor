@@ -1,14 +1,61 @@
 `default_nettype none `timescale 1ns / 1ns
-import defs_pkg::*;
 
 module riscv #(
     parameter logic [8:0] XLEN = 9'd64,
     parameter logic [31:0] BASE_RESETVEC = 32'h8000_0000,
     parameter logic [XLEN-1:0] RESETVEC = {{(XLEN - 32) {1'b0}}, BASE_RESETVEC}
 ) (
-    input clk,
-    input resetn
+  `ifdef SIMULATION_RUN
+    input  logic clk,
+  `endif
+    input logic resetn
 );
+
+`ifdef FPGA_RUN
+logic clk;
+SB_HFOSC #(.CLKHF_DIV("0b10")) hfosc_inst (
+    .CLKHFEN(1'b1),
+    .CLKHFPU(1'b1),
+    .CLKHF(clk)
+);
+`endif
+
+localparam logic [3:0]
+NOP  = 4'b0000,
+ADD  = 4'b0001,
+SUB  = 4'b0010,
+AND  = 4'b0011,
+OR   = 4'b0100,
+XOR  = 4'b0101,
+SLL  = 4'b0110,
+SRL  = 4'b0111,
+SRA  = 4'b1000,
+SLT  = 4'b1001,
+SLTU = 4'b1010;
+
+localparam logic [2:0] BEQ = 3'h0, BNE = 3'h1, BLT = 3'h4, BGE = 3'h5, BLTU = 3'h6, BGEU = 3'h7;
+
+localparam logic [6:0]
+R     = 7'b0110011,
+I     = 7'b0010011,
+J     = 7'b1101111,
+JALRI = 7'b1100111,
+LUI   = 7'b0110111,
+AUIPC = 7'b0010111;
+
+localparam logic [2:0]
+CSRRW  = 3'b001,
+CSRRS  = 3'b010,
+CSRRC  = 3'b011,
+CSRRWI = 3'b101,
+CSRRSI = 3'b110,
+CSRRCI = 3'b111;
+
+localparam logic[2:0]
+BYTE   = 3'd0,
+HALF   = 3'd1,
+WORD   = 3'd2,
+DOUBLE = 3'd3;
 
   initial begin
     if ((XLEN != 32) & (XLEN != 64)) $fatal(1, "XLEN invalid please use 32/64, got: %0d", XLEN);
@@ -112,7 +159,12 @@ module riscv #(
   logic            wb_exception_out;
   logic [XLEN-1:0] wb_exception_pc_out;
   logic [     3:0] wb_exception_cause_out;
-  logic [XLEN-1:0] csr_rdata; // TODO: Connect to CSR module when implemented
+  logic [XLEN-1:0] csr_rdata;
+  logic            csr_access_fault;
+  logic [XLEN-1:0] trap_vector;
+  logic            trap_taken;
+  logic [XLEN-1:0] trap_pc;
+  logic            global_interrupt_enable;
 
   // ============================================================================
   // PC Management Logic
@@ -127,7 +179,7 @@ module riscv #(
     if (!resetn) begin
       pc <= RESETVEC;
       pc_valid <= 1'b1;
-    end else if (!pipeline_stall) begin
+    end else if (!pipeline_stall && if_instr_valid) begin
       if (branch_taken) begin
         pc <= branch_target;
       end else if (jump_taken) begin
@@ -137,7 +189,7 @@ module riscv #(
       end
       pc_valid <= 1'b1;
     end else begin
-      pc_valid <= 1'b0; // Stall PC
+      pc_valid <= pc_valid; // Keep current pc_valid state
     end
   end
 
@@ -371,19 +423,115 @@ module riscv #(
     .mem_error(dmem_error)
   );
 
-  // Hazard Detector (placeholder - implement as needed)
+  // CSR Unit
+  csr_unit #(
+    .XLEN(XLEN)
+  ) csr_unit_inst (
+    .clk(clk),
+    .resetn(resetn),
+
+    // CSR Interface from Memory Stage
+    .csr_addr(mem_csr_addr_out),
+    .csr_wdata(mem_csr_wdata_out),
+    .csr_read(1'b1), // Always enable read for now - TODO: connect proper read signal
+    .csr_write(mem_csr_write_out),
+
+    // Exception/Interrupt Interface
+    .exception_occurred(mem_exception_occurred),
+    .exception_pc(mem_exception_pc),
+    .exception_cause(mem_exception_cause),
+    .mret_instruction(1'b0), // TODO: Add MRET detection
+
+    // External Interrupts (placeholder)
+    .external_interrupt(1'b0),
+    .timer_interrupt(1'b0),
+    .software_interrupt(1'b0),
+
+    // Performance Counters
+    .instruction_retired(1'b0), // TODO: Fix combinational loop - was regfile_we
+
+    // CSR Outputs
+    .csr_rdata(csr_rdata),
+    .csr_access_fault(csr_access_fault),
+
+    // Trap Vector and Control
+    .trap_vector(trap_vector),
+    .trap_taken(trap_taken),
+    .trap_pc(trap_pc),
+
+    // Global Interrupt Enable
+    .global_interrupt_enable(global_interrupt_enable)
+  );
+
+  // Hazard Detector
   hazard_detector #(
     .XLEN(XLEN)
   ) hazard_detector_inst (
     .clk(clk),
-    .resetn(resetn)
-    // TODO: Add hazard detection signals
+    .resetn(resetn),
+
+    // Pipeline Stage Inputs
+    .if_valid(if_instr_valid),
+    .if_instruction(if_instruction),
+
+    .id_valid(if_instr_valid), // ID stage valid when IF outputs valid instruction
+    .id_rs1(id_rs1),
+    .id_rs2(id_rs2),
+    .id_rd(id_rd),
+    .id_reg_write_enable(id_reg_write_enable),
+    .id_mem_read(id_mem_read),
+    .id_mem_write(id_mem_write),
+    .id_is_branch(id_is_branch),
+    .id_jump(id_jump),
+    .id_is_csr(id_is_csr),
+
+    .ex_valid(1'b1), // Assume EX stage is always valid when pipeline is running
+    .ex_rd(ex_rd_out),
+    .ex_reg_write_enable(ex_reg_write_enable_out),
+    .ex_mem_read(ex_mem_read_out),
+    .ex_mem_write(ex_mem_write_out),
+    .ex_is_branch(id_is_branch), // Pass through from previous stage
+    .ex_jump(id_jump), // Pass through from previous stage
+    .ex_branch_taken(branch_taken),
+    .ex_jump_taken(jump_taken),
+    .ex_is_csr(id_is_csr), // Pass through from previous stage
+
+    .mem_valid(1'b1), // Assume MEM stage is always valid when pipeline is running
+    .mem_rd(mem_rd_out),
+    .mem_reg_write_enable(mem_reg_write_enable_out),
+    .mem_mem_read(ex_mem_read_out), // Pass through from previous stage
+    .mem_mem_write(ex_mem_write_out), // Pass through from previous stage
+    .mem_stall_internal(mem_stall),
+    .mem_is_csr(id_is_csr), // Pass through from previous stage
+
+    .wb_valid(1'b1), // Assume WB stage is always valid when pipeline is running
+    .wb_rd(mem_rd_out),
+    .wb_reg_write_enable(mem_reg_write_enable_out),
+
+    .pipeline_flush_request(1'b0), // No external flush requests for now
+
+    // Hazard Detection Outputs
+    .stall_if(), // Not used individually - using combined signal
+    .stall_id(),
+    .stall_ex(),
+    .stall_mem(),
+    .stall_wb(),
+    .flush_if(), // Not used individually - using pipeline_flush
+    .flush_id(),
+    .flush_ex(),
+    .flush_mem(),
+    .flush_wb(),
+    .hazard_stall(hazard_stall),
+    .forward_rs1_sel(), // For future forwarding unit
+    .forward_rs2_sel()  // For future forwarding unit
   );
 
   // ============================================================================
-  // Temporary assignments (until CSR module is implemented)
+  // Future enhancements
   // ============================================================================
-  assign csr_rdata = '0; // TODO: Connect to actual CSR module
-  assign hazard_stall = 1'b0; // TODO: Connect to hazard detector outputs
+  // TODO: Add trap handling logic using trap_vector, trap_taken, trap_pc
+  // TODO: Connect external interrupt sources
+  // TODO: Add MRET instruction detection
+  // TODO: Handle csr_access_fault exceptions
 
 endmodule

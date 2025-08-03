@@ -68,7 +68,7 @@ module ifetch #(
       IDLE: begin
         next_imem_req_r = 0;
         next_instr_valid_r = 0;
-        next_state = ifetch_fsm_t'((pc_valid == 1 && !stall && !flush) ? REQ : IDLE);
+        next_state = (pc_valid == 1 && !stall && !flush) ? REQ : IDLE;
       end
       REQ: begin
         next_pc_current_r  = pc_next;
@@ -80,15 +80,20 @@ module ifetch #(
       WAIT_RESP: begin
         next_imem_req_r = 1;
         next_instr_valid_r = 0;
-        next_state = ifetch_fsm_t'((imem_valid && imem_ready && !imem_err) ?
-        (flush ? IDLE : DONE) : (flush ? IDLE : WAIT_RESP))
+        // Capture instruction when memory is ready
+        if (imem_valid && imem_ready && !imem_err && !flush) begin
+          next_instruction_r = (pc_current_r[2] ? imem_data[63:32] : imem_data[31:0]);
+        end
+        next_state = (imem_valid && imem_ready && !imem_err) ?
+        (flush ? IDLE : DONE) : (flush ? IDLE : WAIT_RESP)
             ;  // TODO: Handle err cases properly later
       end
       DONE: begin
         next_imem_req_r = 0;
         next_instr_valid_r = (flush) ? 0 : 1;
-        next_instruction_r = (flush) ? 32'b0 : imem_data[31:0];
-        next_state = ifetch_fsm_t'(stall ? DONE : flush ? IDLE : pc_valid ? REQ : IDLE);
+        // Instruction was already captured in WAIT_RESP, just clear if flushed
+        if (flush) next_instruction_r = 32'b0;
+        next_state = stall ? DONE : flush ? IDLE : pc_valid ? REQ : IDLE;
       end
     endcase
   end

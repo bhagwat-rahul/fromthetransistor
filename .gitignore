@@ -15,6 +15,8 @@
 *.history
 *.bin
 *.elf
+section-3/riscv/test.json
+section-3/riscv/test_mini.json
 # Don't ignore .gitignore itself
 !.gitignore
 # Ignore foll dirs their contents

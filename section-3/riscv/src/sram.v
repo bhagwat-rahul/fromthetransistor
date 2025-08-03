@@ -16,7 +16,7 @@ module sram #(
 
   logic [XLEN-1:0] mem[DEPTH];
 
-  always @(posedge clk) begin
+  always_ff @(posedge clk) begin
     if (we) mem[addr] <= data_in;
     else data_out <= mem[addr];
   end
@@ -28,7 +28,7 @@ module sram #(
 
   logic [XLEN-1:0] mem[DEPTH];
 
-  always @(posedge clk) begin
+  always_ff @(posedge clk) begin
     if (we) mem[addr] <= data_in;
     else data_out <= mem[addr];
   end

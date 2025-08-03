@@ -4,6 +4,18 @@
 VERILATOR = verilator
 VFLAGS = --binary --trace -I$(COMMON_DIR) $(COMMON_SRC) -DSIMULATION_RUN
 
+# FPGA Toolchain
+YOSYS     := $(shell which yosys)
+NEXTPNR   := $(shell which nextpnr-ice40)
+ICEPACK   := $(shell which icepack)
+ICEPROG   := $(shell which iceprog)
+
+# FPGA Configuration
+PROJ    = riscv
+PIN_DEF = riscv.pcf
+DEVICE  = up5k
+PACKAGE = sg48
+
 # Paths
 SRC_DIR  = src
 COMMON_DIR = common
@@ -33,13 +45,14 @@ SRC_WRITEBACK = $(PIPELINE_DIR)/writeback.v
 SRC_REGFILE      = $(SRC_DIR)/regfile.v
 SRC_MEMORY_CTRL  = $(SRC_DIR)/memory_controller.v
 SRC_HAZARD_DET   = $(SRC_DIR)/hazard_detector.v
+SRC_CSR_UNIT     = $(SRC_DIR)/csr_unit.v
 SRC_SRAM         = $(SRC_DIR)/sram.v
 
 # Pipeline sources (all pipeline modules)
 PIPELINE_SOURCES = $(SRC_IFETCH) $(SRC_IDECODE) $(SRC_EXEC) $(SRC_MEMACC) $(SRC_WRITEBACK)
 
 # All sources needed for full RISC-V processor
-ALL_RISCV_SOURCES = $(SRC_RISCV) $(PIPELINE_SOURCES) $(SRC_REGFILE) $(SRC_MEMORY_CTRL) $(SRC_HAZARD_DET) $(SRC_SRAM)
+ALL_RISCV_SOURCES = $(SRC_RISCV) $(PIPELINE_SOURCES) $(SRC_REGFILE) $(SRC_MEMORY_CTRL) $(SRC_HAZARD_DET) $(SRC_CSR_UNIT) $(SRC_SRAM)
 
 # Testbenches
 TB_RISCV     = $(TEST_DIR)/riscv_tb.v
@@ -93,8 +106,24 @@ show_idecode:
 show_ifetch:
 	yosys -p "read_verilog -sv src/pipeline/ifetch.v ; synth ; show"
 
+# --- FPGA Targets ---
+
+$(BUILD_DIR)/$(PROJ).json: $(ALL_RISCV_SOURCES) $(COMMON_SRC) | $(BUILD_DIR)
+	$(YOSYS) -v3 -p 'read_verilog -sv -DFPGA_RUN $(COMMON_SRC) $(ALL_RISCV_SOURCES); synth_ice40 -top $(PROJ) -json $@'
+
+$(BUILD_DIR)/$(PROJ).asc: $(PIN_DEF) $(BUILD_DIR)/$(PROJ).json
+	$(NEXTPNR) --$(DEVICE) --package $(PACKAGE) --asc $@ --pcf $(PIN_DEF) --json $(BUILD_DIR)/$(PROJ).json
+
+$(BUILD_DIR)/$(PROJ).bin: $(BUILD_DIR)/$(PROJ).asc
+	$(ICEPACK) $< $@
+
+fpga: $(BUILD_DIR)/$(PROJ).bin
+
+upload: $(BUILD_DIR)/$(PROJ).bin
+	sudo $(ICEPROG) $<
+
 # --- Cleanup ---
 clean:
 	rm -rf $(BUILD_DIR)
 
-.PHONY: all riscv clean
+.PHONY: all riscv clean fpga upload
