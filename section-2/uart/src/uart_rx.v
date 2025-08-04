@@ -128,7 +128,6 @@ module uart_rx #(
         ODD_PARITY: ;
         STOP: ;
         DONE: ;
-        default: $display("should never be default");
       endcase
     end else begin
       next_os_count = os_count + 1;
