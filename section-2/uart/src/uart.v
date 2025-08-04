@@ -6,7 +6,9 @@ module uart #(
     parameter int unsigned CLK_FREQ = 100000000,  // 100 MHz
     parameter logic [4:0] OVS_FACTOR = 16
 ) (
-    input logic       clk,
+  `ifdef SIMULATION_RUN
+    input  logic clk,
+  `endif
     input logic       resetn,
     input logic       rx_pin,
     input logic       send_request,
@@ -21,6 +23,15 @@ module uart #(
     output logic       tx_busy,
     output logic       tx_done
 );
+
+`ifdef FPGA_RUN
+logic clk;
+SB_HFOSC #(.CLKHF_DIV("0b10")) hfosc_inst (
+    .CLKHFEN(1'b1),
+    .CLKHFPU(1'b1),
+    .CLKHF(clk)
+);
+`endif
 
   logic baud_tick, tick_16x;
 

@@ -71,7 +71,9 @@ module uart_rx #(
   always_comb begin
     lasttick         = (os_count == OVSWIDTH'(LASTTICK));
     midsample        = (os_count == OVSWIDTH'(MIDSAMPLE));
+    /* verilator lint_off WIDTHEXPAND */
     lastbit          = (bit_index == BITINDEXWIDTH'(DATA_BITS - 1));
+    /* verilator lint_off WIDTHEXPAND */
     next_rx_state    = rx_state;
     next_os_count    = os_count;
     next_bit_index   = bit_index;

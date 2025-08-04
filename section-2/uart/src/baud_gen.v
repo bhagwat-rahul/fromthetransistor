@@ -10,8 +10,10 @@ module baud_gen #(
     output logic baud_tick,
     output logic tick_16x
 );
+/* verilator lint_off WIDTHEXPAND */
   localparam logic [47:0] DIVISORFP_16 = (CLK_FREQ << 16) / (BAUD_RATE * OVS_FACTOR);
   localparam int unsigned OVSWIDTH = $clog2(OVS_FACTOR);
+/* verilator lint_on WIDTHEXPAND */
 
   logic [48:0] acc;
   logic [OVSWIDTH-1:0] oversample_counter;
