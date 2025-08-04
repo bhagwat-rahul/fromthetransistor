@@ -13,6 +13,8 @@
 *.o
 *.vcd
 *.history
+*.bin
+*.elf
 # Don't ignore .gitignore itself
 !.gitignore
 # Ignore foll dirs their contents
