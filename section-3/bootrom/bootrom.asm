@@ -1,7 +1,10 @@
-    .section .text
-    .globl _start
+.section .text
+.globl _start
+
 _start:
-    la sp, __stack_top       # Load stack pointer w highest ram addr
-    j 0x80001000
-hang:
-    j   hang                # Infinite loop fallback
+  li t0, 42         # Load 42 into register t0
+  li t1, 23         # Load 23 into register t1
+  add t2, t0, t1    # t2 = t0 + t1 (t2 will hold 65)
+
+inf_loop:
+  j inf_loop        # Infinite loop
