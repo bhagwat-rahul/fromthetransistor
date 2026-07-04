@@ -2,7 +2,7 @@
 
 module sram #(
     parameter logic[8:0] XLEN  = 64,
-    parameter int unsigned DEPTH = 262144
+    parameter int unsigned DEPTH = 1024
 ) (
     input logic clk,
     input logic we,
@@ -39,6 +39,28 @@ module sram #(
   `ifdef ASIC_RUN
 
   `ifdef PDK_IHP13SG2
+
+  RM_IHPSG13_1P_1024x64_c2_bm_bist i_ihp_sram (
+      .A_CLK       (clk),
+      .A_MEN       (1'b1),               // Always enable memory block
+      .A_WEN       (we),                 // Write when high
+      .A_REN       (~we),                // Read when low
+      .A_ADDR      (addr[9:0]),          // 10-bit Address Bus
+      .A_DIN       (data_in),            // 64-bit Functional Data In
+      .A_DLY       (1'b0),               // Margin delay control (default 0)
+      .A_DOUT      (data_out),           // 64-bit Functional Data Out
+      .A_BM        ({64{1'b1}}),         // Bit mask: set all bits to 1 for full write TODO(rahul): maybe change
+
+      // BIST Interfaces (Tied off to disable testing during functional execution)
+      .A_BIST_EN   (1'b0),               // Disable BIST controller wrapper
+      .A_BIST_CLK  (1'b0),
+      .A_BIST_MEN  (1'b0),
+      .A_BIST_WEN  (1'b0),
+      .A_BIST_REN  (1'b0),
+      .A_BIST_ADDR (10'b0),
+      .A_BIST_DIN  (64'b0),
+      .A_BIST_BM   (64'b0)
+  );
 
   `endif
 
