@@ -35,8 +35,16 @@ module sram #(
 
   `endif
 
-  /** taping out on asic (dep's on PDK) **/
+  /** taping out on asic (PDK dependent) **/
   `ifdef ASIC_RUN
+
+  `ifdef PDK_IHP13SG2
+
+  `endif
+
+  `ifdef PDK_GF180MCUD
+
+  `endif
 
   `endif
 
