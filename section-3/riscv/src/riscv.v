@@ -348,7 +348,7 @@ module riscv #(
   // Memory Controller
   memory_controller #(
     .XLEN(XLEN),
-    .MEM_DEPTH(262144)
+    .MEM_DEPTH(1024)
   ) memory_controller_inst (
     .clk(clk),
     .resetn(resetn),
