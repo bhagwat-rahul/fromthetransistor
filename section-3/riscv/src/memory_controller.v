@@ -3,7 +3,7 @@ import defs_pkg::*;
 
 module memory_controller #(
     parameter logic [8:0] XLEN = 9'd64,
-    parameter int unsigned MEM_DEPTH = 262144  // 1MB = 256K words
+    parameter int unsigned MEM_DEPTH = 1024
 ) (
     input logic clk,
     input logic resetn,
